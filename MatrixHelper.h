@@ -49,26 +49,162 @@ namespace MathLib {
 	using Point2f = Vec2f;
 	using Point2i = Vec2i;
 
-	using Matrix2d = Matd<2, 2>;
-	using Matrix2f = Matf<2, 2>;
-	using Matrix2i = Mati<2, 2>;
+	using Mat2d = Matd<2, 2>;
+	using Mat2f = Matf<2, 2>;
+	using Mat2i = Mati<2, 2>;
 
-	using Matrix3d = Matd<3, 3>;
-	using Matrix3f = Matf<3, 3>;
-	using Matrix3i = Mati<3, 3>;
+	using Mat3d = Matd<3, 3>;
+	using Mat3f = Matf<3, 3>;
+	using Mat3i = Mati<3, 3>;
 
-	using Matrix4d = Matd<4, 4>;
-	using Matrix4f = Matf<4, 4>;
-	using Matrix4i = Mati<4, 4>;
+	using Mat4d = Matd<4, 4>;
+	using Mat4f = Matf<4, 4>;
+	using Mat4i = Mati<4, 4>;
+
+	template <typename Type>
+	using Vec2 = Vector<2, Type>;
+
+	template <typename Type>
+	using Vec3 = Vector<3, Type>;
+
+	template <typename Type>
+	using Vec4 = Vector<4, Type>;
+
+	template <typename Type>
+	using Mat2 = Matrix<2, 2, Type>;
+
+	template <typename Type>
+	using Mat3 = Matrix<3, 3, Type>;
+
+	template <typename Type>
+	using Mat4 = Matrix<4, 4, Type>;
 
 	template <int rows, typename Type>
-	Matrix <rows, rows, Type> Identity () {
+	Matrix <rows, rows, Type> ident () {
 		Matrix <rows, rows, Type> mat;
 
 		for (int i = 0; i < rows; i++)
 			mat[i][i] = Type(1);
 
 		return mat;
+	}
+
+	template <typename Type,
+			typename SinType = double(*)(double),
+			typename CosType = double(*)(double),
+			typename A = float, typename B = float, typename C = float,
+			typename D = float, typename E = float>
+	Mat4<Type> projection (A fov_y, B aspect, C zNear, D zFar,
+			E pi = 3.141592653589, SinType sin = std::sin,
+			CosType cos = std::cos)
+	{
+		// TO DO
+		auto ctan = [&] (Type x) -> Type {
+	        return cos(x) / sin(x);
+	    };
+
+		float f = ctan(fov_y * pi / 180.0 / 2.0);
+
+		float firstExpresion = (zFar + zNear) / (zNear - zFar);
+		float secondExpresion = 2.0f * zFar * zNear / (zNear - zFar);
+
+		return Mat4<Type>( 
+			f / aspect,	0.0f,	0.0f,			0.0f,
+			0.0f,		f,		0.0f,			0.0f,
+			0.0f,		0.0f,	firstExpresion,	secondExpresion,
+			0.0f,		0.0f,	-1.0f,			0.0f               
+		);
+	}
+
+	template <typename Type, typename SinType = double(*)(double),
+			typename CosType = double(*)(double),
+			typename A = float, typename B = float,
+			typename C = float, typename D = float>
+	Mat3<Type> rot3 (A deg, B x, C y, D z,
+			Type pi = 3.141592653589, SinType sin = std::sin,
+			CosType cos = std::cos)
+	{
+		Type co = cos(deg * pi / 180.0f);
+		Type si = sin(deg * pi / 180.0f);
+		return Mat3<Type>(
+			x * x * (1.0f - co) + co,
+			x * y * (1.0f - co) + z * si,
+			x * z * (1.0f - co) - y * si,
+
+			y * x * (1.0f - co) - z * si,
+			y * y * (1.0f - co) + co,
+			y * z * (1.0f - co) + x * si,
+			
+			z * x * (1.0f - co) + y * si,
+			z * y * (1.0f - co) - x * si,
+			z * z * (1.0f - co) + co
+		);
+	}
+
+	template <typename Type, typename SinType = double(*)(double),
+			typename CosType = double(*)(double),
+			typename A = float, typename B = float>
+	Mat3<Type> rot3 (A deg, Vec3<B> vec,
+			Type pi = 3.141592653589, SinType sin = std::sin,
+			CosType cos = std::cos)
+	{
+		return rotation(deg, vec.x, vec.y, vec.z, pi, sin, cos);
+	}
+
+	template <typename Type, typename SinType = double(*)(double),
+			typename CosType = double(*)(double),
+			typename A = float, typename B = float,
+			typename C = float, typename D = float>
+	Mat4<Type> rot4 (A deg, B x, C y, D z,
+			Type pi = 3.141592653589, SinType sin = std::sin,
+			CosType cos = std::cos)
+	{
+		return Mat4<Type>(
+			rot3(deg, x, y, z, pi, sin, cos),	Vec3<Type>(),
+			Vec3<Type>().tr(),					1);
+	}
+
+	template <typename Type, typename SinType = double(*)(double),
+			typename CosType = double(*)(double),
+			typename A = float, typename B = float>
+	Mat4<Type> rot4 (A deg, Vec3<B> vec,
+			Type pi = 3.141592653589, SinType sin = std::sin,
+			CosType cos = std::cos)
+	{
+		return Mat4<Type>(
+			rot3(deg, vec, pi, sin, cos),	Vec3<Type>(),
+			Vec3<Type>().tr(),				1);
+	}
+
+	template <typename Type,
+			typename A = float, typename B = float, typename C = float>
+	Mat4<Type> translation (A x, B y, C z) {
+		return Mat4<Type>(
+			1, 0, 0, x,
+			0, 1, 0, y,
+			0, 0, 1, z,
+			0, 0, 0, 1
+		);
+	}
+
+	template <typename Type, typename A = float>
+	Mat4<Type> translation (Vec3<A> vec) {
+		return translation(vec.x, vec.y, vec.z);
+	}
+
+	template <typename Type,
+			typename A = float, typename B = float, typename C = float>
+	Mat3<Type> scale (A x, B y, C z) {
+		return Mat3<Type> (
+			x, 0, 0,
+			0, y, 0,
+			0, 0, z
+		);
+	}
+
+	template <typename Type, typename A>
+	Mat3<Type> scale (Vec3<A> vec) {
+		return scale(vec.x, vec.y, vec.z);
 	}
 }
 

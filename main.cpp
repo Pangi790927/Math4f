@@ -10,13 +10,34 @@ int main(int argc, char const *argv[])
 	using namespace std;
 
 	testBasic();
+	testBasicOld();
 }
 
 void testBasic() {
 	using namespace MathLib;
-	using namespace std;
 
-	Matrix4f mat1(
+	float vec[16];
+	for (int i = 0; i < 16; ++i) {
+		vec[i] = i;
+	}
+
+	Matrix<4, 4, float> matFromPtr(vec);
+	std::cout << "matFromPtr: " << matFromPtr << std::endl;
+
+	std::cout << "mat * scal" << Mat2f(1, 2) * 2 << " "
+			<< 2 * Mat2f(2, 1) << std::endl;
+
+	double mat[4][4];
+	for (int i = 0; i < 16; ++i) {
+		mat[i / 4][i % 4] = i;
+	}
+	std::cout << "Mat from mat ptr " << Mat4f(mat) << std::endl;
+	std::cout << "Composed matrix: " <<
+	 	Mat4f(
+	 		Mat2f({11, 21, 31, 41}), Mat2f(10, 20, 30, 40),
+	 		Mat2f(12, 22, 32, 42), Mat2f(13, 23, 33, 43)) << std::endl;
+
+	Mat4f mat1(
 		1, 0, 0, 0,
 		0, 2, 0, 0,
 		0, 0, 2, 0,
@@ -25,7 +46,7 @@ void testBasic() {
 	Vec4f vec1(0, 1, 0, 0);
 	Vec4f vec2(0, 1, 1, 0);
 
-	Matrix4f mat2 = mat1;
+	Mat4f mat2 = mat1;
 
 	std::cout << vec1.x << std::endl;
 	std::cout << vec1.y << std::endl;
@@ -36,6 +57,18 @@ void testBasic() {
 
 	std::cout << vec1 * vec2.tr() << std::endl;
 	std::cout << vec2.tr() * vec1 << std::endl;
+
+	std::cout << "Ident:" << std::endl;
+	Mat4f testMat(
+		1, Matrix<1, 3, float>(),
+		2, Matrix<1, 3, int>(),
+		3, Matrix<1, 3, double>(),
+		4, Matrix<1, 3, float>());
+	std::cout << testMat << std::endl;
+
+	testMat = ident<4, int>();
+	std::cout << testMat << std::endl;
+	std::cout << rot4<float>(30, 0, 1, 0) << std::endl;
 }
 
 int testBasicOld() {

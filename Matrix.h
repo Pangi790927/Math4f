@@ -272,7 +272,7 @@ namespace MathLib {
 		Matrix<3, 1, decltype(Type() * TypeArg())> cross (Matrix<3, 1, TypeArg>& arg) {
 			Matrix <3, 1, decltype(Type() * TypeArg())> result;
 
-			static_assert((3 == rows && cols == 1), "The vectors must be equal to use cross");
+			static_assert((3 == rows && cols == 1), "The vectors must be 3D to use cross");
 
 			return Matrix <3, 1, decltype(Type() * TypeArg())> (
 				MatCont::y * arg.z - MatCont::z * arg.y,
@@ -317,7 +317,7 @@ namespace MathLib {
 		}
 
 		template <typename Abs_T = double(*)(double)>
-		Type det(MatrixEpsilon &epsilon = defaultEpsilon, Abs_T abs = std::abs) {
+		Type det (MatrixEpsilon &epsilon = defaultEpsilon, Abs_T abs = std::abs) {
 			static_assert((rows == cols), "need to have a square matrix to use determinant!");
 
 			Type result = Type(1);
@@ -697,6 +697,12 @@ namespace MathLib {
 			return result;
 		}
 
+		Type *getPtr() {
+			static_assert(rows * cols < MAX_MATRIX_SIZE, "Can't get a pointer to "
+					"all data, matrix is too large and alocated on heap.");
+			return &MatCont::matrix[0][0];
+		}
+
 		// The matrix will be constructed as follows: 
 		// -> we will consider basic types to be a matrix of 1 X 1
 		// -> we will take the first matrix and place it at (0, 0)
@@ -705,6 +711,20 @@ namespace MathLib {
 		// continue placing the next matrix from there
 
 		Matrix () {}
+
+		template <typename ArgType>
+		Matrix (ArgType *array) {
+			for (int i = 0; i < rows; i++)
+				for (int j = 0; j < cols; j++)
+					MatCont::matrix[i][j] = array[i * cols + j];
+		}
+
+		template <typename ArgType>
+		Matrix (ArgType array[][cols]) {
+			for (int i = 0; i < rows; i++)
+				for (int j = 0; j < cols; j++)
+					MatCont::matrix[i][j] = array[i][j];
+		}
 
 		template <typename ArgType, typename ...Args>
 		Matrix (ArgType& arg, Args ...args) {
@@ -781,7 +801,6 @@ namespace MathLib {
 
 		/// ostream, istream:
 		friend std::ostream& operator << (std::ostream& stream, Matrix<rows, cols, Type>& arg) {
-			stream << "rows: " << rows << ", cols:" << cols << std::endl; 
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					stream << arg[i][j] << " ";
@@ -794,7 +813,6 @@ namespace MathLib {
 		}
 
 		friend std::ostream& operator << (std::ostream& stream, Matrix<rows, cols, Type>&& arg) {
-			stream << "rows: " << rows << ", cols:" << cols << std::endl;
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					stream << arg[i][j] << " ";
