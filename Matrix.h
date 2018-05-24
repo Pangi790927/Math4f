@@ -21,30 +21,15 @@ namespace MathLib {
 
 	template <int row_count, int column_count, typename Type, bool bigMatrix>
 	class MatrixContainer {
-	public: 
-		Type **matrix;
+	public:
+		static_assert(row_count >= 1, "matrix must have at least one element");
+		static_assert(column_count >= 1, "matrix must have at least one element");
+		std::vector<Type> matrix;
 
-		MatrixContainer() {
-			matrix = new Type*[row_count]{0};
-
-			for (int i = 0; i < row_count; i++)
-				matrix[i] = new Type[column_count] {Type(0)};
-		}
-
-		void freeMem() {
-			for (int i = 0; i < row_count; i++) {
-				delete [] matrix[i];
-			}
-
-			delete [] matrix;
-		}
+		MatrixContainer() : matrix(row_count * column_count, Type(0)) {}
 
 		Type *operator [] (int index) {
-			return matrix[index];
-		}
-
-		~MatrixContainer() {
-			freeMem();
+			return &matrix[0] + index * column_count;
 		}
 	};
 
@@ -96,9 +81,9 @@ namespace MathLib {
 	struct MatrixToVectorContainer <2, 1, Type> { 
 		using MatCont = MatrixContainer<2, 1, Type, ((2 * 1) > MAX_MATRIX_SIZE)>;
 		union {
+			MatCont matrix;
+			Type array[2];	/// for compatibility with opengl
 			struct {
-				MatCont matrix;
-				Type array[2];	/// for compatibility with opengl
 				union {
 					Type x;
 					Type r;
@@ -178,10 +163,21 @@ namespace MathLib {
 
 		using MatCont = MatrixToVectorContainer <row_count, column_count, Type>;
 
+		static Type sqrtFunc (Type x) {
+			return std::sqrt(x);
+		}
+
+		static Type absFunc (Type x) {
+			return std::abs(x);
+		}
+
+		using SqrtType = decltype(&Matrix::sqrtFunc);
+		using AbsType = decltype(&Matrix::absFunc);
+
 		~Matrix() {}
 
 		template <typename T>
-		static constexpr const bool is_matrix{is_same_template<T, Matrix<1, 1, float>>};
+		static constexpr const bool is_matrix{is_same_template<T, Matrix<1, 1, Type>>};
 		
 		template <typename TypeCols>
 		static constexpr int get_col_number() {
@@ -207,13 +203,13 @@ namespace MathLib {
 				}
 			}
 
-			template <typename Abs_T = double(*)(double)>
-			bool areEqual (Type arg1, Type arg2, Abs_T abs = std::abs) {
+			template <typename Abs_T = AbsType>
+			bool areEqual (Type arg1, Type arg2, Abs_T abs = absFunc) {
 				return (abs(arg1 - arg2) < epsilon);
 			}
 
-			template <typename Abs_T = double(*)(double)>
-			bool isZero (Type arg1, Abs_T abs = std::abs) {
+			template <typename Abs_T = AbsType>
+			bool isZero (Type arg1, Abs_T abs = absFunc) {
 				return (abs(arg1 - Type(0)) < epsilon);
 			}
 
@@ -223,8 +219,8 @@ namespace MathLib {
 
 		static MatrixEpsilon defaultEpsilon;
 
-		template <typename Sqrt_T = double(*)(double), typename Abs_T = double(*)(double)>
-		Type getFrobeniusNorm (Sqrt_T sqrt = std::sqrt, Abs_T abs = std::abs) {
+		template <typename Sqrt_T = SqrtType, typename Abs_T = AbsType>
+		Type getFrobeniusNorm (Sqrt_T sqrt = sqrtFunc, Abs_T abs = absFunc) {
 			Type result = Type(0);
 
 			for (int i = 0; i < rows; i++)
@@ -234,8 +230,8 @@ namespace MathLib {
 			return sqrt(result);
 		}
 
-		template <typename Sqrt_T = double(*)(double), typename Abs_T = double(*)(double)>
-		Type vecNorm2 (Sqrt_T sqrt = std::sqrt, Abs_T abs = std::abs) {
+		template <typename Sqrt_T = SqrtType, typename Abs_T = AbsType>
+		Type vecNorm2 (Sqrt_T sqrt = sqrtFunc, Abs_T abs = absFunc) {
 			Type result = Type(0);
 
 			for (int i = 0; i < rows; i++)
@@ -245,8 +241,8 @@ namespace MathLib {
 			return sqrt(result);	
 		}
 
-		template <typename Abs_T = double(*)(double)>
-		Type vecNorm1 (Abs_T abs = std::abs) {
+		template <typename Abs_T = AbsType>
+		Type vecNorm1 (Abs_T abs = absFunc) {
 			Type result = Type(0);
 
 			for (int i = 0; i < rows; i++)
@@ -256,8 +252,8 @@ namespace MathLib {
 			return result;	
 		}
 
-		template <typename Abs_T = double(*)(double)>
-		Type vecNormInf (Abs_T abs = std::abs) {
+		template <typename Abs_T = AbsType>
+		Type vecNormInf (Abs_T abs = absFunc) {
 			Type result = abs(MatCont::matrix[0][0]);
 
 			for (int i = 0; i < rows; i++)
@@ -302,8 +298,8 @@ namespace MathLib {
 			return dot(arg);
 		}
 
-		template <typename Sqrt_T = double(*)(double), typename Abs_T = double(*)(double)>
-		MatrixEpsilon getSugestedEpsilon(Sqrt_T sqrt = std::sqrt, Abs_T abs = std::abs) {
+		template <typename Sqrt_T = SqrtType, typename Abs_T = AbsType>
+		MatrixEpsilon getSugestedEpsilon(Sqrt_T sqrt = sqrtFunc, Abs_T abs = absFunc) {
 			
 			Type norm = getFrobeniusNorm(sqrt, abs);
 			if (abs(norm) < 1)
@@ -316,8 +312,8 @@ namespace MathLib {
 			}
 		}
 
-		template <typename Abs_T = double(*)(double)>
-		Type det (MatrixEpsilon &epsilon = defaultEpsilon, Abs_T abs = std::abs) {
+		template <typename Abs_T = AbsType>
+		Type det (MatrixEpsilon &epsilon = defaultEpsilon, Abs_T abs = absFunc) {
 			static_assert((rows == cols), "need to have a square matrix to use determinant!");
 
 			Type result = Type(1);
@@ -824,7 +820,7 @@ namespace MathLib {
 			return stream;
 		}
 
-		friend std::istream& operator << (std::istream& stream, Matrix<rows, cols, Type>& arg) {
+		friend std::istream& operator >> (std::istream& stream, Matrix<rows, cols, Type>& arg) {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					stream >> arg[i][j];
