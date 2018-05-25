@@ -6,7 +6,7 @@ int testBasicOld();
 
 int main(int argc, char const *argv[])
 {
-	using namespace MathLib;
+	using namespace Math;
 	using namespace std;
 
 	testBasic();
@@ -14,7 +14,7 @@ int main(int argc, char const *argv[])
 }
 
 void testBasic() {
-	using namespace MathLib;
+	using namespace Math;
 
 	float vec[16];
 	for (int i = 0; i < 16; ++i) {
@@ -74,7 +74,7 @@ void testBasic() {
 }
 
 int testBasicOld() {
-	using namespace MathLib;
+	using namespace Math;
 	using namespace std;
 
 	Matf <1000, 20> testDim;
@@ -117,7 +117,7 @@ int testBasicOld() {
 
 	std::cout << test.det() << std::endl;
 
-	std::cout << MathLib::Matf<3, 3> (
+	std::cout << Math::Matf<3, 3> (
 		1, 2, 3,
 		4, 5, 6,
 		7, 8, 9
@@ -129,13 +129,13 @@ int testBasicOld() {
 		0, 0, 1
 	).det() << std::endl;
 
-	std::cout << MathLib::Matf<3, 3> (
+	std::cout << Math::Matf<3, 3> (
 		1, 2, 3,
 		4, 5, 6,
 		7, 10, 9
 	).det() << std::endl;
 
-	std::cout << MathLib::Matf<4, 4> (
+	std::cout << Math::Matf<4, 4> (
 		1, 0, 2, -1, 
 		3, 0, 0, 5,
 		2, 1, 4, -3, 
@@ -184,7 +184,7 @@ int testBasicOld() {
 
 	cout << " DDDDDDDDDDDDDDDDDDDDDDDDD " << endl;
 
-	MathLib::Matf<4, 4> gMat(
+	Math::Matf<4, 4> gMat(
 		1, 0, 2, -1, 
 		3, 0, 0, 5,
 		2, 1, 4, -3, 

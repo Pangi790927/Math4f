@@ -7,7 +7,7 @@
 #include <functional>
 #include <cmath>
 
-namespace MathLib {
+namespace Math {
 	template <typename, typename>
 	constexpr bool is_same_template{false}; 
 

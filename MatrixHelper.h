@@ -3,7 +3,7 @@
 
 #include "Matrix.h"
 
-namespace MathLib {
+namespace Math {
 	template <int size, typename Type>
 	using Vector = Matrix <size, 1, Type>;
 

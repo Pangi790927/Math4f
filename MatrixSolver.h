@@ -3,7 +3,7 @@
 
 #include "Matrix.h"
 
-namespace MathLib
+namespace Math
 {
 	/** Lower Triangular Matrix Ax = b
 	*	v 0 0 0
