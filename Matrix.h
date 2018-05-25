@@ -66,7 +66,6 @@ namespace MathLib {
 		using MatCont = MatrixContainer<1, 1, Type, ((1 * 1) > MAX_MATRIX_SIZE)>;
 		union {
 			MatCont matrix;
-			Type array[1];	/// for compatibility with opengl
 			union {
 				Type x;
 				Type r;
@@ -82,7 +81,6 @@ namespace MathLib {
 		using MatCont = MatrixContainer<2, 1, Type, ((2 * 1) > MAX_MATRIX_SIZE)>;
 		union {
 			MatCont matrix;
-			Type array[2];	/// for compatibility with opengl
 			struct {
 				union {
 					Type x;
@@ -104,7 +102,6 @@ namespace MathLib {
 		using MatCont = MatrixContainer<3, 1, Type, ((3 * 1) > MAX_MATRIX_SIZE)>;
 		union {
 			MatCont matrix;
-			Type array[3];	/// for compatibility with opengl
 			struct {
 				union {
 					Type x;
@@ -130,7 +127,6 @@ namespace MathLib {
 		using MatCont = MatrixContainer<4, 1, Type, ((4 * 1) > MAX_MATRIX_SIZE)>;
 		union {
 			MatCont matrix;
-			Type array[4];	/// for compatibility with opengl
 			struct {
 				union {
 					Type x;
