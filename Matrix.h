@@ -694,8 +694,6 @@ namespace MathLib {
 		}
 
 		Type *getPtr() {
-			static_assert(rows * cols < MAX_MATRIX_SIZE, "Can't get a pointer to "
-					"all data, matrix is too large and alocated on heap.");
 			return &MatCont::matrix[0][0];
 		}
 
@@ -732,9 +730,13 @@ namespace MathLib {
 			fill_mat <0, 0, is_matrix<ArgType>, ArgType, Args...> (arg, args...);
 		}
 
+		// I want to modify this function to be more general
+		// for now I will leave it be
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType, typename... Args>
 		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg, Args ...args) {
-			MatCont::matrix[lin][col] = arg;
+			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
+				MatCont::matrix[lin][col] = arg;
+			}
 
 			if constexpr (col + 1 + get_col_number<NextType>() <= cols)	// we have space for the next matrix
 				fill_mat <lin, col + 1, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
@@ -745,9 +747,11 @@ namespace MathLib {
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType, typename... Args>
 		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg, Args ...args) {
-			for (int i = 0; i < ArgType::rows; i++)
-				for (int j = 0; j < ArgType::cols; j++)
+			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
+				for (int i = 0; i < ArgType::rows; i++)
+					for (int j = 0; j < ArgType::cols; j++)
 						MatCont::matrix[lin + i][col + j] = arg[i][j];
+			}
 
 			if constexpr (col + ArgType::cols + get_col_number<NextType>() <= cols) {
 				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
@@ -759,7 +763,9 @@ namespace MathLib {
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType>
 		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg) {
-			MatCont::matrix[lin][col] = arg;
+			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
+				MatCont::matrix[lin][col] = arg;
+			}
 
 			if constexpr (col + 1 + get_col_number<NextType>() <= cols) {
 				fill_mat <lin, col + 1, is_matrix<NextType>, NextType> (nextArg);
@@ -771,9 +777,11 @@ namespace MathLib {
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType>
 		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg) {
-			for (int i = 0; i < ArgType::rows; i++)
-				for (int j = 0; j < ArgType::cols; j++)
+			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
+				for (int i = 0; i < ArgType::rows; i++)
+					for (int j = 0; j < ArgType::cols; j++)
 						MatCont::matrix[lin + i][col + j] = arg[i][j];
+			}
 
 			if constexpr (col + ArgType::cols + get_col_number<NextType>() <= cols) {
 				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>, NextType> (nextArg);
@@ -785,14 +793,18 @@ namespace MathLib {
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType>
 		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg) {
-			MatCont::matrix[lin][col] = arg;
+			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
+				MatCont::matrix[lin][col] = arg;
+			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType>
 		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg) {
-			for (int i = 0; i < ArgType::rows; i++)
-				for (int j = 0; j < ArgType::cols; j++)
+			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
+				for (int i = 0; i < ArgType::rows; i++)
+					for (int j = 0; j < ArgType::cols; j++)
 						MatCont::matrix[lin + i][col + j] = arg[i][j];
+			}
 		}
 
 		/// ostream, istream:

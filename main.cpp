@@ -10,7 +10,7 @@ int main(int argc, char const *argv[])
 	using namespace std;
 
 	testBasic();
-	testBasicOld();
+	// testBasicOld();
 }
 
 void testBasic() {
@@ -69,6 +69,8 @@ void testBasic() {
 	testMat = ident<4, int>();
 	std::cout << testMat << std::endl;
 	std::cout << rot4<float>(30, 0, 1, 0) << std::endl;
+
+	std::cout << Mat3f(Mat2f(1, 2, 3, 4), 5, 6, 7, 8, 9) << std::endl;
 }
 
 int testBasicOld() {
