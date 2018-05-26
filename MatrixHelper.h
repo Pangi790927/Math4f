@@ -148,7 +148,7 @@ namespace Math {
 			Type pi = 3.141592653589, SinType sin = std::sin,
 			CosType cos = std::cos)
 	{
-		return rotation(deg, vec.x, vec.y, vec.z, pi, sin, cos);
+		return rot3(deg, vec.x, vec.y, vec.z, pi, sin, cos);
 	}
 
 	template <typename Type, typename SinType = double(*)(double),
@@ -189,7 +189,7 @@ namespace Math {
 
 	template <typename Type, typename A = float>
 	Mat4<Type> translation (Vec3<A> vec) {
-		return translation(vec.x, vec.y, vec.z);
+		return translation<Type>(vec.x, vec.y, vec.z);
 	}
 
 	template <typename Type,
@@ -205,6 +205,32 @@ namespace Math {
 	template <typename Type, typename A>
 	Mat3<Type> scale (Vec3<A> vec) {
 		return scale(vec.x, vec.y, vec.z);
+	}
+
+	template <int resCol, int resRow, typename Type, int col, int row>
+	Matrix<resRow, resCol, Type>
+	trunc (Matrix<row, col, Type> mat) {
+		using ResType = Matrix<resRow, resCol, Type>;
+		ResType res;
+
+		for (int i = 0; i < resRow && i < row; i++)
+			for (int j = 0; j < resCol && j < col; j++)
+				res[i][j] = mat[i][j];
+
+		return res;
+	}
+
+	template <typename MatType, typename Type, int col, int row>
+	MatType
+	trunc (Matrix<row, col, Type> mat) {
+		using ResType = MatType;
+		ResType res;
+
+		for (int i = 0; i < MatType::rows && i < row; i++)
+			for (int j = 0; j < MatType::cols && j < col; j++)
+				res[i][j] = mat[i][j];
+
+		return res;
 	}
 }
 

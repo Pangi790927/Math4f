@@ -8,15 +8,14 @@
 #include <cmath>
 
 namespace Math {
-	template <typename, typename>
-	constexpr bool is_same_template{false}; 
+	template <typename ToCheck>
+	struct is_matrix {
+		template <typename T, void (T::*)() const> struct SFINAE {};
+		template <typename T> static char test (SFINAE<T, &T::MatrixIdentificator>*);
+		template <typename T> static int test (...);
+		constexpr const static bool value = sizeof(test<ToCheck>(0)) == sizeof(char);
+	};
 
-	template <
-		template <int, int, typename> class T,
-		int l1, int c1, typename A,
-		int l2, int c2, typename B
-	>
-	constexpr bool is_same_template <T<l1, c1, A>, T<l2, c2, B>> {true};
 	constexpr static const int MAX_MATRIX_SIZE = 10000;
 
 	template <int row_count, int column_count, typename Type, bool bigMatrix>
@@ -30,6 +29,10 @@ namespace Math {
 
 		Type *operator [] (int index) {
 			return &matrix[0] + index * column_count;
+		}
+
+		const Type *operator [] (int index) const {
+			return (const Type *)(&matrix[0] + index * column_count);
 		}
 	};
 
@@ -46,6 +49,10 @@ namespace Math {
 
 		Type *operator [] (int index) {
 			return matrix[index];
+		}
+
+		const Type *operator [] (int index) const {
+			return (const Type *)matrix[index];
 		}
 
 		~MatrixContainer() {}
@@ -159,6 +166,8 @@ namespace Math {
 
 		using MatCont = MatrixToVectorContainer <row_count, column_count, Type>;
 
+		void MatrixIdentificator() const {};
+
 		static Type sqrtFunc (Type x) {
 			return std::sqrt(x);
 		}
@@ -172,12 +181,9 @@ namespace Math {
 
 		~Matrix() {}
 
-		template <typename T>
-		static constexpr const bool is_matrix{is_same_template<T, Matrix<1, 1, Type>>};
-		
 		template <typename TypeCols>
 		static constexpr int get_col_number() {
-			if constexpr (is_matrix<TypeCols>) {
+			if constexpr (is_matrix<TypeCols>::value) {
 				return TypeCols::cols;
 			}
 			else {
@@ -506,7 +512,7 @@ namespace Math {
 
 		/// main operators
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() + TypeB())>& operator = (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, cols, decltype(Type() + TypeB())>& operator = (const Matrix<rowsB, colsB, TypeB>& mat) {
 			static_assert((colsB <= cols && rowsB <= rows), "Cannot equal, sizes don't match");
 
 			for (int i = 0; i < rows; i++)
@@ -528,7 +534,8 @@ namespace Math {
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() + TypeB())> operator + (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, cols, decltype(Type() + TypeB())>
+		operator + (const Matrix<rowsB, colsB, TypeB>& mat) const {
 			Matrix <rows, cols, decltype(Type() + TypeB())> result;
 
 			static_assert((cols == colsB && rows == rowsB), "Cannot add, sizes don't match");
@@ -541,7 +548,8 @@ namespace Math {
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() - TypeB())> operator - (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, cols, decltype(Type() - TypeB())>
+		operator - (const Matrix<rowsB, colsB, TypeB>& mat) const {
 			Matrix <rows, cols, decltype(Type() - TypeB())> result;
 
 			static_assert((cols == colsB && rows == rowsB), "Cannot substract, sizes don't match");
@@ -554,7 +562,8 @@ namespace Math {
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, colsB, decltype(Type() * TypeB())> operator * (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, colsB, decltype(Type() * TypeB())>
+		operator * (const Matrix<rowsB, colsB, TypeB>& mat) const {
 			Matrix <rows, colsB, decltype(Type() * TypeB())> result;
 
 			static_assert((cols == rowsB), "Cannot multiply, sizes don't match");
@@ -567,12 +576,14 @@ namespace Math {
 			return result;
 		}
 
-		Matrix<rows, cols, Type> operator - () {
+		Matrix<rows, cols, Type> operator - ()  const {
 			return (*this) * Type(-1);
 		}
 		
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() * ScalarType())> operator * (ScalarType& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType& scalar) const {
 			Matrix<rows, cols, decltype(Type() * ScalarType())> result;
 				
 			for (int i = 0; i < rows; i++)
@@ -583,7 +594,9 @@ namespace Math {
 		}
 
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() / ScalarType())> operator / (ScalarType& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() / ScalarType())>>::type
+		operator / (const ScalarType& scalar) const {
 			Matrix<rows, cols, decltype(Type() / ScalarType())> result;
 			
 			static_assert((scalar != 0), "Divide by zero");
@@ -597,81 +610,99 @@ namespace Math {
 
 		/// friends, references and rvalues
 		template <typename ScalarType>
-		friend Matrix<rows, cols, decltype(Type() * ScalarType())> operator * 
-				(ScalarType& scalar, Matrix<rows, cols, decltype(Type() * ScalarType())>& mat) 
+		friend typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType& scalar, const Matrix<rows, cols, decltype(Type() * ScalarType())>& mat) 
 		{
 			return (mat * scalar);
 		}
 
 		template <typename ScalarType>
-		friend Matrix<rows, cols, decltype(Type() * ScalarType())> operator * 
-				(ScalarType& scalar, Matrix<rows, cols, decltype(Type() * ScalarType())>&& mat) 
+		friend typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType& scalar, const Matrix<rows, cols, decltype(Type() * ScalarType())>&& mat) 
 		{
 			return (mat * scalar);
 		}
 
 		template <typename ScalarType>
-		friend Matrix<rows, cols, decltype(Type() * ScalarType())> operator * 
-				(ScalarType&& scalar, Matrix<rows, cols, decltype(Type() * ScalarType())>& mat) 
+		friend typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType&& scalar, const Matrix<rows, cols, decltype(Type() * ScalarType())>& mat) 
 		{
 			return (mat * scalar);
 		}
 
 		template <typename ScalarType>
-		friend Matrix<rows, cols, decltype(Type() * ScalarType())> operator * 
-				(ScalarType&& scalar, Matrix<rows, cols, decltype(Type() * ScalarType())>&& mat) 
+		friend typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType&& scalar, const Matrix<rows, cols, decltype(Type() * ScalarType())>&& mat) 
 		{
 			return (mat * scalar);
 		}
 
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() / ScalarType())> operator / (ScalarType&& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() / ScalarType())>>::type
+		operator / (const ScalarType&& scalar) const {
 			return (*this / scalar);
 		}
 
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() * ScalarType())> operator * (ScalarType&& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator * (const ScalarType&& scalar) const {
 			return (*this * scalar);
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, colsB, decltype(Type() * TypeB())> operator * (Matrix<rowsB, colsB, TypeB>&& mat) {
+		Matrix<rows, colsB, decltype(Type() * TypeB())>
+		operator * (const Matrix<rowsB, colsB, TypeB>&& mat) const {
 			return (*this * mat);
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() - TypeB())> operator - (Matrix<rowsB, colsB, TypeB>&& mat) {
+		Matrix<rows, cols, decltype(Type() - TypeB())>
+		operator - (const Matrix<rowsB, colsB, TypeB>&& mat) const {
 			return (*this - mat);
 		}
 
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() + TypeB())> operator + (Matrix<rowsB, colsB, TypeB>&& mat) {
+		Matrix<rows, cols, decltype(Type() + TypeB())>
+		operator + (const Matrix<rowsB, colsB, TypeB>&& mat) const {
 			return (*this + mat);
 		}
 		
 		/// operator <something>=
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() + TypeB())> operator += (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, cols, decltype(Type() + TypeB())>
+		operator += (const Matrix<rowsB, colsB, TypeB>& mat) {
 			return ((*this) = (*this) + mat);
 		}
 		
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, cols, decltype(Type() - TypeB())> operator -= (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, cols, decltype(Type() - TypeB())>
+		operator -= (const Matrix<rowsB, colsB, TypeB>& mat) {
 			return ((*this) = (*this) - mat);
 		}
 		
 		template <int rowsB, int colsB, typename TypeB>
-		Matrix<rows, colsB, decltype(Type() * TypeB())> operator *= (Matrix<rowsB, colsB, TypeB>& mat) {
+		Matrix<rows, colsB, decltype(Type() * TypeB())>
+		operator *= (const Matrix<rowsB, colsB, TypeB>& mat) {
 			return ((*this) = (*this) * mat);
 		}
 
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() * ScalarType())> operator *= (ScalarType& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() * ScalarType())>>::type
+		operator *= (const ScalarType& scalar) {
 			return ((*this) = (*this) * scalar);
 		}
 
 		template <typename ScalarType>
-		Matrix<rows, cols, decltype(Type() / ScalarType())> operator /= (ScalarType& scalar) {
+		typename std::enable_if<!is_matrix<ScalarType>::value, 
+				Matrix<rows, cols, decltype(Type() / ScalarType())>>::type
+		operator /= (const ScalarType& scalar) {
 			return ((*this) = (*this) / scalar);
 		}
 
@@ -679,7 +710,11 @@ namespace Math {
 			return MatCont::matrix[index];
 		}
 
-		Matrix<cols, rows, Type> tr() {
+		const Type* operator [] (int index) const {
+			return MatCont::matrix[index];
+		}
+
+		Matrix<cols, rows, Type> tr() const {
 			Matrix<cols, rows, Type> result;
 
 			for (int i = 0; i < rows; i++)
@@ -690,6 +725,10 @@ namespace Math {
 		}
 
 		Type *getPtr() {
+			return &MatCont::matrix[0][0];
+		}
+
+		Type *getPtr() const {
 			return &MatCont::matrix[0][0];
 		}
 
@@ -717,32 +756,32 @@ namespace Math {
 		}
 
 		template <typename ArgType, typename ...Args>
-		Matrix (ArgType& arg, Args ...args) {
-			fill_mat <0, 0, is_matrix<ArgType>, ArgType, Args...> (arg, args...);
+		Matrix (const ArgType& arg, Args ...args) {
+			fill_mat <0, 0, is_matrix<ArgType>::value, ArgType, Args...> (arg, args...);
 		}
 
 		template <typename ArgType, typename ...Args>
-		Matrix (ArgType&& arg, Args ...args) {
-			fill_mat <0, 0, is_matrix<ArgType>, ArgType, Args...> (arg, args...);
+		Matrix (const ArgType&& arg, Args ...args) {
+			fill_mat <0, 0, is_matrix<ArgType>::value, ArgType, Args...> (arg, args...);
 		}
 
 		// I want to modify this function to be more general
 		// for now I will leave it be
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType, typename... Args>
-		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg, Args ...args) {
+		typename std::enable_if<!is_matrix_val, void>::type fill_mat(const ArgType& arg, const NextType& nextArg, Args ...args) {
 			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
 				MatCont::matrix[lin][col] = arg;
 			}
 
 			if constexpr (col + 1 + get_col_number<NextType>() <= cols)	// we have space for the next matrix
-				fill_mat <lin, col + 1, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
+				fill_mat <lin, col + 1, is_matrix<NextType>::value, NextType, Args...> (nextArg, args...);
 			else { 														// we don't have space for the matrix
-				fill_mat <lin + 1, 0, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
+				fill_mat <lin + 1, 0, is_matrix<NextType>::value, NextType, Args...> (nextArg, args...);
 			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType, typename... Args>
-		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg, Args ...args) {
+		typename std::enable_if<is_matrix_val, void>::type fill_mat(const ArgType& arg, const NextType& nextArg, Args ...args) {
 			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
 				for (int i = 0; i < ArgType::rows; i++)
 					for (int j = 0; j < ArgType::cols; j++)
@@ -750,29 +789,29 @@ namespace Math {
 			}
 
 			if constexpr (col + ArgType::cols + get_col_number<NextType>() <= cols) {
-				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
+				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>::value, NextType, Args...> (nextArg, args...);
 			}
 			else { 												// we don't have space for the matrix
-				fill_mat <lin + ArgType::rows, 0, is_matrix<NextType>, NextType, Args...> (nextArg, args...);
+				fill_mat <lin + ArgType::rows, 0, is_matrix<NextType>::value, NextType, Args...> (nextArg, args...);
 			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType>
-		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg) {
+		typename std::enable_if<!is_matrix_val, void>::type fill_mat(const ArgType& arg, const NextType& nextArg) {
 			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
 				MatCont::matrix[lin][col] = arg;
 			}
 
 			if constexpr (col + 1 + get_col_number<NextType>() <= cols) {
-				fill_mat <lin, col + 1, is_matrix<NextType>, NextType> (nextArg);
+				fill_mat <lin, col + 1, is_matrix<NextType>::value, NextType> (nextArg);
 			}
 			else { 												// we don't have space for the matrix
-				fill_mat <lin + 1, 0, is_matrix<NextType>, NextType> (nextArg);
+				fill_mat <lin + 1, 0, is_matrix<NextType>::value, NextType> (nextArg);
 			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType, typename NextType>
-		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg, NextType& nextArg) {
+		typename std::enable_if<is_matrix_val, void>::type fill_mat(const ArgType& arg, const NextType& nextArg) {
 			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
 				for (int i = 0; i < ArgType::rows; i++)
 					for (int j = 0; j < ArgType::cols; j++)
@@ -780,22 +819,22 @@ namespace Math {
 			}
 
 			if constexpr (col + ArgType::cols + get_col_number<NextType>() <= cols) {
-				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>, NextType> (nextArg);
+				fill_mat <lin, col + ArgType::cols, is_matrix<NextType>::value, NextType> (nextArg);
 			}
 			else { 												// we don't have space for the matrix
-				fill_mat <lin + ArgType::rows, 0, is_matrix<NextType>, NextType> (nextArg);
+				fill_mat <lin + ArgType::rows, 0, is_matrix<NextType>::value, NextType> (nextArg);
 			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType>
-		typename std::enable_if<!is_matrix_val, void>::type fill_mat(ArgType& arg) {
+		typename std::enable_if<!is_matrix_val, void>::type fill_mat(const ArgType& arg) {
 			if constexpr (col + 1 <= cols && lin + 1 <= rows) {
 				MatCont::matrix[lin][col] = arg;
 			}
 		}
 
 		template <int lin, int col, bool is_matrix_val, typename ArgType>
-		typename std::enable_if<is_matrix_val, void>::type fill_mat(ArgType& arg) {
+		typename std::enable_if<is_matrix_val, void>::type fill_mat(const ArgType& arg) {
 			if constexpr (col + ArgType::cols <= cols && lin + ArgType::rows <= rows) {
 				for (int i = 0; i < ArgType::rows; i++)
 					for (int j = 0; j < ArgType::cols; j++)
@@ -804,7 +843,7 @@ namespace Math {
 		}
 
 		/// ostream, istream:
-		friend std::ostream& operator << (std::ostream& stream, Matrix<rows, cols, Type>& arg) {
+		friend std::ostream& operator << (std::ostream& stream, const Matrix<rows, cols, Type>& arg) {
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
 					stream << arg[i][j] << " ";

@@ -66,11 +66,20 @@ void testBasic() {
 		4, Matrix<1, 3, float>());
 	std::cout << testMat << std::endl;
 
-	testMat = ident<4, int>();
+	testMat = identity<4, int>();
 	std::cout << testMat << std::endl;
 	std::cout << rot4<float>(30, 0, 1, 0) << std::endl;
 
 	std::cout << Mat3f(Mat2f(1, 2, 3, 4), 5, 6, 7, 8, 9) << std::endl;
+	float val = 10;
+	auto mMat = Mat3f(
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1
+	);
+	std::cout << val * mMat * val << std::endl;
+	std::cout << Math::is_matrix<decltype(mMat)>::value << std::endl;
+	std::cout << Math::is_matrix<float>::value << std::endl;
 }
 
 int testBasicOld() {
