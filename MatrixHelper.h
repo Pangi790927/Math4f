@@ -80,7 +80,7 @@ namespace Math {
 	using Mat4 = Matrix<4, 4, Type>;
 
 	template <int rows, typename Type>
-	Matrix <rows, rows, Type> ident () {
+	Matrix <rows, rows, Type> identity () {
 		Matrix <rows, rows, Type> mat;
 
 		for (int i = 0; i < rows; i++)

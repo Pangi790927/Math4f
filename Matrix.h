@@ -507,7 +507,7 @@ namespace Math {
 		/// main operators
 		template <int rowsB, int colsB, typename TypeB>
 		Matrix<rows, cols, decltype(Type() + TypeB())>& operator = (Matrix<rowsB, colsB, TypeB>& mat) {
-			static_assert((cols == colsB && rows == rowsB), "Cannot equal, sizes don't match");
+			static_assert((colsB <= cols && rowsB <= rows), "Cannot equal, sizes don't match");
 
 			for (int i = 0; i < rows; i++)
 				for (int j = 0; j < cols; j++)
@@ -518,7 +518,7 @@ namespace Math {
 
 		template <int rowsB, int colsB, typename TypeB>
 		Matrix<rows, cols, decltype(Type() + TypeB())>& operator = (Matrix<rowsB, colsB, TypeB>&& mat) {
-			static_assert((cols == colsB && rows == rowsB), "Cannot equal, sizes don't match");
+			static_assert((colsB <= cols && rowsB <= rows), "Cannot equal, sizes don't match");
 
 			for (int i = 0; i < rows; i++)
 				for (int j = 0; j < cols; j++)
