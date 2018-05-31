@@ -144,7 +144,7 @@ namespace Math {
 	template <typename Type, typename SinType = double(*)(double),
 			typename CosType = double(*)(double),
 			typename A = float, typename B = float>
-	Mat3<Type> rot3 (A deg, Vec3<B> vec,
+	Mat3<Type> rot3 (A deg, const Vec3<B>& vec,
 			Type pi = 3.141592653589, SinType sin = std::sin,
 			CosType cos = std::cos)
 	{
@@ -167,7 +167,7 @@ namespace Math {
 	template <typename Type, typename SinType = double(*)(double),
 			typename CosType = double(*)(double),
 			typename A = float, typename B = float>
-	Mat4<Type> rot4 (A deg, Vec3<B> vec,
+	Mat4<Type> rot4 (A deg, const Vec3<B>& vec,
 			Type pi = 3.141592653589, SinType sin = std::sin,
 			CosType cos = std::cos)
 	{
@@ -188,7 +188,7 @@ namespace Math {
 	}
 
 	template <typename Type, typename A = float>
-	Mat4<Type> translation (Vec3<A> vec) {
+	Mat4<Type> translation (const Vec3<A>& vec) {
 		return translation<Type>(vec.x, vec.y, vec.z);
 	}
 
@@ -203,13 +203,29 @@ namespace Math {
 	}
 
 	template <typename Type, typename A>
-	Mat3<Type> scale (Vec3<A> vec) {
+	Mat3<Type> scale (const Vec3<A>& vec) {
 		return scale(vec.x, vec.y, vec.z);
+	}
+
+	template <typename Type,
+			typename A = float, typename B = float, typename C = float>
+	Mat4<Type> scale4 (A x, B y, C z) {
+		return Mat4<Type> (
+			x, 0, 0, 0,
+			0, y, 0, 0,
+			0, 0, z, 0,
+			0, 0, 0, 1
+		);
+	}
+
+	template <typename Type, typename A>
+	Mat4<Type> scale4 (const Vec3<A>& vec) {
+		return scale4(vec.x, vec.y, vec.z);
 	}
 
 	template <int resCol, int resRow, typename Type, int col, int row>
 	Matrix<resRow, resCol, Type>
-	trunc (Matrix<row, col, Type> mat) {
+	trunc (const Matrix<row, col, Type>& mat) {
 		using ResType = Matrix<resRow, resCol, Type>;
 		ResType res;
 
@@ -222,7 +238,7 @@ namespace Math {
 
 	template <typename MatType, typename Type, int col, int row>
 	MatType
-	trunc (Matrix<row, col, Type> mat) {
+	trunc (const Matrix<row, col, Type>& mat) {
 		using ResType = MatType;
 		ResType res;
 
@@ -231,6 +247,16 @@ namespace Math {
 				res[i][j] = mat[i][j];
 
 		return res;
+	}
+
+	template <typename Type>
+	Mat4<Type>
+	rigidTransformInverse (const Mat4<Type>& mat) {
+		return Mat4<Type> (
+			trunc<3, 3>(mat).tr(),
+			-trunc<3, 3>(mat).tr() * Vec3<Type>(mat[0][3], mat[1][3], mat[2][3]),
+			Vec4<Type>(0, 0, 0, 1).tr()
+		);
 	}
 }
 

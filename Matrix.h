@@ -285,7 +285,7 @@ namespace Math {
 		}
 
 		template <int rowsArg, typename TypeArg>
-		decltype(Type() * TypeArg()) dot (Matrix<rowsArg, 1, TypeArg>& arg) {
+		decltype(Type() * TypeArg()) dot (const Matrix<rowsArg, 1, TypeArg>& arg) const {
 			static_assert((rowsArg == rows && cols == 1), "The vectors must be equal to use dot");
 
 			decltype(Type() * TypeArg()) result = 0;
@@ -296,7 +296,7 @@ namespace Math {
 		}
 
 		template <int rowsArg, typename TypeArg>
-		decltype(Type() * TypeArg()) dot (Matrix<rowsArg, 1, TypeArg>&& arg) {
+		decltype(Type() * TypeArg()) dot (Matrix<rowsArg, 1, TypeArg>&& arg) const {
 			return dot(arg);
 		}
 
@@ -599,8 +599,6 @@ namespace Math {
 		operator / (const ScalarType& scalar) const {
 			Matrix<rows, cols, decltype(Type() / ScalarType())> result;
 			
-			static_assert((scalar != 0), "Divide by zero");
-
 			for (int i = 0; i < rows; i++)
 				for (int j = 0; j < cols; j++)
 					result[i][j] = MatCont::matrix[i][j] / scalar;
@@ -728,7 +726,7 @@ namespace Math {
 			return &MatCont::matrix[0][0];
 		}
 
-		Type *getPtr() const {
+		const Type *getPtr() const {
 			return &MatCont::matrix[0][0];
 		}
 
