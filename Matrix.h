@@ -233,7 +233,7 @@ namespace Math {
 		}
 
 		template <typename Sqrt_T = SqrtType, typename Abs_T = AbsType>
-		Type vecNorm2 (Sqrt_T sqrt = sqrtFunc, Abs_T abs = absFunc) {
+		Type norm2 (Sqrt_T sqrt = sqrtFunc, Abs_T abs = absFunc) {
 			Type result = Type(0);
 
 			for (int i = 0; i < rows; i++)
@@ -244,7 +244,7 @@ namespace Math {
 		}
 
 		template <typename Abs_T = AbsType>
-		Type vecNorm1 (Abs_T abs = absFunc) {
+		Type norm1 (Abs_T abs = absFunc) {
 			Type result = Type(0);
 
 			for (int i = 0; i < rows; i++)
@@ -255,7 +255,7 @@ namespace Math {
 		}
 
 		template <typename Abs_T = AbsType>
-		Type vecNormInf (Abs_T abs = absFunc) {
+		Type normInf (Abs_T abs = absFunc) {
 			Type result = abs(MatCont::matrix[0][0]);
 
 			for (int i = 0; i < rows; i++)

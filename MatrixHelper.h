@@ -94,7 +94,7 @@ namespace Math {
 			typename CosType = double(*)(double),
 			typename A = float, typename B = float, typename C = float,
 			typename D = float, typename E = float>
-	Mat4<Type> projection (A fov_y, B aspect, C zNear, D zFar,
+	Mat4<Type> projection (A yFov, B aspect, C zNear, D zFar,
 			E pi = 3.141592653589, SinType sin = std::sin,
 			CosType cos = std::cos)
 	{
@@ -103,7 +103,7 @@ namespace Math {
 	        return cos(x) / sin(x);
 	    };
 
-		float f = ctan(fov_y * pi / 180.0 / 2.0);
+		float f = ctan(yFov * pi / 180.0 / 2.0);
 
 		float firstExpresion = (zFar + zNear) / (zNear - zFar);
 		float secondExpresion = 2.0f * zFar * zNear / (zNear - zFar);
