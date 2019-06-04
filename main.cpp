@@ -112,7 +112,7 @@ int testBasicOld() {
 	std::cout << test * 4 << std::endl;
 	std::cout << "-----------------" << std::endl;
 	std::cout << test.row(0)[0] << std::endl;
-	
+
 	auto line = test.row(2);
 
 	std::cout << test.row(0).getAsMatrix() << std::endl;

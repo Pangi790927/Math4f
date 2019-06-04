@@ -194,7 +194,7 @@ namespace Math {
 
 	template <typename Type,
 			typename A = float, typename B = float, typename C = float>
-	Mat3<Type> scale (A x, B y, C z) {
+	Mat3<Type> scale (A x = 0, B y = 0, C z = 0) {
 		return Mat3<Type> (
 			x, 0, 0,
 			0, y, 0,
@@ -209,7 +209,7 @@ namespace Math {
 
 	template <typename Type,
 			typename A = float, typename B = float, typename C = float>
-	Mat4<Type> scale4 (A x, B y, C z) {
+	Mat4<Type> scale4 (A x = 0, B y = 0, C z = 0) {
 		return Mat4<Type> (
 			x, 0, 0, 0,
 			0, y, 0, 0,
