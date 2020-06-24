@@ -1,6 +1,7 @@
 #include <iostream>
 #include "MathLib.h"
 
+void testVMat();
 void testBasic();
 int testBasicOld();
 
@@ -9,8 +10,86 @@ int main(int argc, char const *argv[])
 	using namespace Math;
 	using namespace std;
 
-	testBasic();
+	testVMat();
+	// testBasic();
 	// testBasicOld();
+}
+
+void testVMat() {
+	using namespace Math;
+
+	const	VMatrix<float>			_0;
+	const	VMatrix<int>			_1;
+	const	VMatrix<VMatrix<float>>	_2;
+	const	VMatrix<float>			_3(_0);
+	const	VMatrix<float>			_4(_1);
+	const	VMatrix<float>			_5(10);
+	const	VMatrix<float>			_6(10, 10);
+			VMatrix<int>			_6a(10, 10);
+			VMatrix<float>			_6b(10, 10);
+	const	VMatrix<float>			_7(10, 10, 3);
+	const	VMatrix<float>			_9(_6);
+
+	// _6a = _6b;
+	// _6b = _6a;
+
+	// int vec[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+	// std::vector<std::vector<int>> mat(10, std::vector<int>(10));
+
+	// const	VMat<float>			_8b(10, vec);
+
+	// 		auto _10 = -_6;
+	// 		auto _11 = +_6;
+	// const	auto _12 = _6 - _6;
+	// const	auto _13 = _6 + _6;
+	// 		auto _14 = _5 + vec;
+	// 		auto _15 = _6 + mat;
+	// const	auto _16 = vec + _5;
+	// const	auto _17 = mat + _6;
+	// const	auto _18 = _5 - vec;
+	// const	auto _19 = _6 - mat;
+	// const	auto _20 = vec - _5;
+	// const	auto _21 = mat - _6;
+	// const	auto _22 = _6 * mat;
+	// const	auto _23 = mat * _6;
+	// 		auto _24 = _6 / 3.;
+	// const	auto _25 = (mat | _6) & (_6 | mat);
+	// 		auto _26 = (mat & _6) | (_6 & mat);
+
+	// _24 +=  _6;
+	// _24 -=  _6;
+	// _24 *=  _6;
+	// _24 /=  6;
+	// _24 |=  _6;
+	// _24 &=  (_6 | _6);
+	// _24 *= 3.;
+	// _10 *= vec;
+	// _11 *= _8;
+
+	// 		VMat<int> _27(1, 1);
+
+	// if (sizeof(_27) < 2)
+	// 	std::cin >> _27;
+	// std::cout << _27 << std::endl;
+
+	// _26.do_inv();
+	// _26.do_tr();
+	// _26.swap_rows(2, 3);
+	// _26.swap_cols(2, 3);
+	// _14.insert_rows(0, 2, _6);
+	// _15.insert_cols(0, 2, _6);
+
+	// _6.inv();
+	// _6.det();
+	// _6.tr();
+	// _6.partition(1, 1, 3, 3);
+	// _6.size();
+
+	// _5.dot();
+	// _5.norm1();
+	// _5.norm2();
+	// _5.norm_inf();
+
 }
 
 void testBasic() {
