@@ -1,6 +1,26 @@
 #ifndef VMATRIX_H
 #define VMATRIX_H
 
+#include "except.h"
+
+#define ASSERT_MATCH(m1, m2, op1, op2)									\
+if (((m1.size() == 0 || m2.size() == 0) && m1.size() != m2.size()) ||	\
+		!(op1) || !(op2))												\
+{																		\
+	EXCEPTION("matrix size mismatch: m1[%lu, %lu] m2[%lu, %lu]",		\
+			m1.size(), m1.size() ? m1[0].size() : 0,					\
+			m2.size(), m2.size() ? m2[0].size() : 0);					\
+}
+
+#define ASSERT_ADD_MATCH(m1, m2)										\
+		ASSERT_MATCH(m1, m2,											\
+				m1.size() == m2.size(),									\
+				m1[0].size() == m2[0].size())
+
+#define ASSERT_MUL_MATCH(m1, m2) \
+		ASSERT_MATCH(m1, m2, false, m1[0].size() == m2.size())
+
+
 namespace Math {
 
 	template <typename T>
@@ -8,8 +28,8 @@ namespace Math {
 	public:
 		std::vector<std::vector<T>> data;
 
-		VMatrix(int rows = 0, int cols = 0, const T& t = T(0));
-		
+		VMatrix(int rows = 1, int cols = 1, const T& t = T(0));
+
 		template <typename U>
 		VMatrix(const VMatrix<U>& oth);
 
@@ -34,22 +54,7 @@ namespace Math {
 		VMatrix operator & (const VMatrix& mat) const;		
 
 		template <typename U>
-		friend VMatrix<U> operator - (const VMatrix<U>& mat, const VMatrix<U>& b);
-
-		template <typename U>
-		friend VMatrix<U> operator + (const VMatrix<U>& mat, const VMatrix<U>& b);
-
-		template <typename U>
-		friend VMatrix<U> operator * (const VMatrix<U>& mat, const VMatrix<U>& b);
-
-		template <typename U>
 		friend VMatrix<U> operator * (const U& a, const VMatrix<U>& b);
-
-		template <typename U>
-		friend VMatrix<U> operator | (const VMatrix<U>& a, const VMatrix<U>& b);
-
-		template <typename U>
-		friend VMatrix<U> operator & (const VMatrix<U>& a, const VMatrix<U>& b);
 
 		VMatrix &operator += (const VMatrix& mat);
 		VMatrix &operator -= (const VMatrix& mat);
@@ -91,25 +96,43 @@ namespace Math {
 		T norm2() const;
 		T norm_inf() const;
 	};
-	
+
 	template <typename T>
-	VMatrix<T>::VMatrix(int rows, int cols, const T& t) {}
+	VMatrix<T>::VMatrix(int rows, int cols, const T& t)
+	: data(rows, std::vector<T>(cols, t)) {}
 
 	template <typename T>
 	template <typename U>
-	VMatrix<T>::VMatrix(const VMatrix<U>& oth) {}
+	VMatrix<T>::VMatrix(const VMatrix<U>& oth) {
+		(*this) = oth;
+	}
 
 	template <typename T>
 	template <typename U>
-	VMatrix<T>::VMatrix(VMatrix<U>&& oth) {}
+	VMatrix<T>::VMatrix(VMatrix<U>&& oth) {
+		(*this) = oth;
+	}
 
 	template <typename T>
 	template <typename U>
-	VMatrix<T> &VMatrix<T>::operator = (const VMatrix<U>& oth) {}
+	VMatrix<T> &VMatrix<T>::operator = (const VMatrix<U>& oth) {
+		if (data.size() != oth.data.size())
+			data.resize(oth.data.size());
+		if (oth.data.size() && oth.data[0].size() != data[0].size())
+			for (int i = 0; i < oth.data.size(); i++)
+				data[i].resize(oth.data[0].size());
+
+		for (int i = 0; i < data.size(); i++)
+			for (int j = 0; j < data[0].size(); j++)
+				data[i][j] = oth.data[i][j];
+		return (*this);
+	}
 
 	template <typename T>
 	template <typename U>
-	VMatrix<T> &VMatrix<T>::operator = (VMatrix<U>&& oth) {}
+	VMatrix<T> &VMatrix<T>::operator = (VMatrix<U>&& oth) {
+		return (*this) = oth;
+	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator +() const {}
@@ -118,7 +141,10 @@ namespace Math {
 	VMatrix<T> VMatrix<T>::operator -() const {}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator + (const VMatrix<T>& mat) const {}
+	VMatrix<T> VMatrix<T>::operator + (const VMatrix<T>& mat) const {
+		auto ret = (*this);
+		return ret += mat;
+	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator - (const VMatrix<T>& mat) const {}
@@ -139,25 +165,16 @@ namespace Math {
 	VMatrix<T> VMatrix<T>::operator & (const VMatrix<T>& mat) const {}
 
 	template <typename T>
-	VMatrix<T> operator - (const VMatrix<T>& mat, const VMatrix<T>& b) {}
-
-	template <typename T>
-	VMatrix<T> operator + (const VMatrix<T>& mat, const VMatrix<T>& b) {}
-
-	template <typename T>
-	VMatrix<T> operator * (const VMatrix<T>& mat, const VMatrix<T>& b) {}
-
-	template <typename T>
 	VMatrix<T> operator * (const T& a, const VMatrix<T>& b) {}
 
 	template <typename T>
-	VMatrix<T> operator | (const VMatrix<T>& a, const VMatrix<T>& b) {}
-
-	template <typename T>
-	VMatrix<T> operator & (const VMatrix<T>& a, const VMatrix<T>& b) {}
-
-	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator += (const VMatrix<T>& mat) {}
+	VMatrix<T> &VMatrix<T>::operator += (const VMatrix<T>& mat) {
+		ASSERT_ADD_MATCH(data, mat.data);
+		for (int i = 0; i < data.size(); i++)
+			for (int j = 0; j < data[0].size(); j++)
+				data[i][j] = mat.data[i][j];
+		return (*this);
+	}
 
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::operator -= (const VMatrix<T>& mat) {}

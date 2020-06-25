@@ -24,11 +24,20 @@ void testVMat() {
 	const	VMatrix<float>			_3(_0);
 	const	VMatrix<float>			_4(_1);
 	const	VMatrix<float>			_5(10);
-	const	VMatrix<float>			_6(10, 10);
+			VMatrix<float>			_6(10, 10);
 			VMatrix<int>			_6a(10, 10);
 			VMatrix<float>			_6b(10, 10);
 	const	VMatrix<float>			_7(10, 10, 3);
 	const	VMatrix<float>			_9(_6);
+
+	try {
+		_6 += _6;
+		_6 + _6;
+		_5 + _6;
+	}
+	catch (std::exception &e) {
+		printf("exception: %s\n", e.what());
+	}
 
 	// _6a = _6b;
 	// _6b = _6a;
