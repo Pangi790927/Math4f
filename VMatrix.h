@@ -172,7 +172,7 @@ namespace Math {
 		ASSERT_ADD_MATCH(data, mat.data);
 		for (int i = 0; i < data.size(); i++)
 			for (int j = 0; j < data[0].size(); j++)
-				data[i][j] = mat.data[i][j];
+				data[i][j] += mat.data[i][j];
 		return (*this);
 	}
 
