@@ -13,7 +13,14 @@ std::string backtrace_fn() {
 	std::string res;
 	for (int i = 0; i < size; i++) {
 		char *name = symb[i];
+		while (*name && *name != '(')
+			name++;
+		if (*name)
+			name++;
 		std::string sname = name;
+		sname = sname.substr(0, sname.find('+'));
+		if (sname.find(')') != std::string::npos)
+			sname = "__unknown__";
 		res = res + "fn: " + demangle(sname) + "\n";
 	}
 	return res;
