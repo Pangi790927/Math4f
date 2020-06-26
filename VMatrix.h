@@ -3,9 +3,9 @@
 
 #include "except.h"
 
+/* to do: treat the case where both matrices are 0x0 */
 #define ASSERT_MATCH(m1, m2, op1, op2)									\
-if (((m1.size() == 0 || m2.size() == 0) && m1.size() != m2.size()) ||	\
-		!(op1) || !(op2))												\
+if ((m1.size() == 0 || m2.size() == 0) || !(op1) || !(op2))				\
 {																		\
 	EXCEPTION("matrix size mismatch: m1[%lu, %lu] m2[%lu, %lu]",		\
 			m1.size(), m1.size() ? m1[0].size() : 0,					\
