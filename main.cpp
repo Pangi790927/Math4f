@@ -1,6 +1,9 @@
 #include <iostream>
 #include "MathLib.h"
 
+//Test
+
+
 void testVMat();
 void testBasic();
 int testBasicOld();
@@ -18,7 +21,8 @@ int main(int argc, char const *argv[])
 void testVMat() {
 	using namespace Math;
 
-	const	VMatrix<float>			_0;
+
+	/*const	VMatrix<float>			_0;
 	const	VMatrix<int>			_1;
 	const	VMatrix<VMatrix<float>>	_2;
 	const	VMatrix<float>			_3(_0);
@@ -28,13 +32,21 @@ void testVMat() {
 			VMatrix<int>			_6a(10, 10);
 			VMatrix<float>			_6b(10, 10);
 	const	VMatrix<float>			_7(10, 10, 3);
-	const	VMatrix<float>			_9(_6);
+	const	VMatrix<float>			_9(_6);*/
+		 	VMatrix<int>			A(4,2);
+			VMatrix<int>			B(2,3);
+
 
 	try {
-		_6 += _6;
+	/*	_6 += _6;
 		_6 + _6;
 		std::cout << _6 << std::endl;
 		_5 + _6;
+		_5 + _6;*/
+		std::cout << "A:\n" << A << std::endl;
+		std::cout << "B:\n" << B << std::endl;
+		A *= B;
+
 	}
 	catch (std::exception &e) {
 		printf("exception: %s\n", e.what());

@@ -18,7 +18,7 @@ if ((m1.size() == 0 || m2.size() == 0) || !(op1) || !(op2))				\
 				m1[0].size() == m2[0].size())
 
 #define ASSERT_MUL_MATCH(m1, m2) \
-		ASSERT_MATCH(m1, m2, false, m1[0].size() == m2.size())
+		ASSERT_MATCH(m1, m2, true, m1[0].size() == m2.size())
 
 
 namespace Math {
@@ -177,16 +177,46 @@ namespace Math {
 	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator -= (const VMatrix<T>& mat) {}
+	VMatrix<T> &VMatrix<T>::operator -= (const VMatrix<T>& mat) {
+		ASSERT_ADD_MATCH(data, mat.data);
+		for (int i = 0; i < data.size(); i++)
+			for (int j = 0; j < data[0].size(); j++)
+				data[i][j] -= mat.data[i][j];
+		return (*this);
+	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator *= (const VMatrix<T>& mat) {}
+	VMatrix<T> &VMatrix<T>::operator *= (const VMatrix<T>& mat) {
+		ASSERT_MUL_MATCH(data, mat.data);
+		VMatrix<T> mat_aux(data.size(), mat.data[0].size());
+		for (int i = 0; i < mat_aux.data.size(); i++) {
+			for (int j = 0; j < mat_aux.data[0].size(); j++) {
+				T sum = 0;
+				for(int k = 0; k < data[i].size(); k++) {
+					sum += data[i][k] * mat.data[k][i];
+				}
+				mat_aux[i][j] = sum;
+			}
+		}
+		*this = mat_aux;
+		return (*this);
+	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator *= (const T& t) {}
+	VMatrix<T> &VMatrix<T>::operator *= (const T& t) {
+		for (int i = 0; i < data.size(); i++)
+			for (int j = 0; j < data[0].size(); j++)
+				data[i][j] *= t;
+		return (*this);
+	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator /= (const T& t) {}
+	VMatrix<T> &VMatrix<T>::operator /= (const T& t) {
+		for (int i = 0; i < data.size(); i++)
+			for (int j = 0; j < data[0].size(); j++)
+				data[i][j] /= t;
+		return (*this);
+	}
 
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::operator |= (const VMatrix<T>& mat) {}
@@ -207,7 +237,7 @@ namespace Math {
 	template <typename T>
 	std::ostream &operator << (std::ostream& s, const VMatrix<T>& m) {
 		for (int i = 0; i < m.data.size(); i++, s << std::endl)
-			for (int j = 0; j < m.data.size(); j++)
+			for (int j = 0; j < m.data[0].size(); j++)
 				s << m.data[i][j] << " ";
 		return s;
 	}
@@ -215,7 +245,7 @@ namespace Math {
 	template <typename T>
 	std::istream &operator >> (std::istream& s, VMatrix<T>& m) {
 		for (int i = 0; i < m.data.size(); i++)
-			for (int j = 0; j < m.data.size(); j++)
+			for (int j = 0; j < m.data[0].size(); j++)
 				s >> m.data[i][j];
 		return s;
 	}
