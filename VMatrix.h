@@ -193,7 +193,7 @@ namespace Math {
 			for (int j = 0; j < mat_aux.data[0].size(); j++) {
 				T sum = 0;
 				for(int k = 0; k < data[i].size(); k++) {
-					sum += data[i][k] * mat.data[k][i];
+					sum += data[i][k] * mat.data[k][j];
 				}
 				mat_aux[i][j] = sum;
 			}
@@ -225,10 +225,15 @@ namespace Math {
 	VMatrix<T> &VMatrix<T>::operator &= (const VMatrix<T>& mat) {}
 
 	template <typename T>
-	std::vector<T> &VMatrix<T>::operator [] (int i) {}
+	std::vector<T> &VMatrix<T>::operator [] (int i) {
+		//TO DO: Assert i in len(data)
+		return data[i];
+	}
 
 	template <typename T>
-	const std::vector<T> &VMatrix<T>::operator [] (int i) const {}
+	const std::vector<T> &VMatrix<T>::operator [] (int i) const {
+		return data[i];
+	}
 
 	template <typename T>
 	template <typename U>

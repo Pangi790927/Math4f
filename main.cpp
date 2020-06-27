@@ -46,6 +46,7 @@ void testVMat() {
 		std::cout << "A:\n" << A << std::endl;
 		std::cout << "B:\n" << B << std::endl;
 		A *= B;
+		std::cout << "A:\n" << A << std::endl;
 
 	}
 	catch (std::exception &e) {
