@@ -33,6 +33,7 @@ void testVMat() {
 	try {
 		_6 += _6;
 		_6 + _6;
+		std::cout << _6 << std::endl;
 		_5 + _6;
 	}
 	catch (std::exception &e) {

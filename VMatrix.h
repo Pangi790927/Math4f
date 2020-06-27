@@ -206,11 +206,17 @@ namespace Math {
 
 	template <typename T>
 	std::ostream &operator << (std::ostream& s, const VMatrix<T>& m) {
+		for (int i = 0; i < m.data.size(); i++, s << std::endl)
+			for (int j = 0; j < m.data.size(); j++)
+				s << m.data[i][j] << " ";
 		return s;
 	}
 
 	template <typename T>
 	std::istream &operator >> (std::istream& s, VMatrix<T>& m) {
+		for (int i = 0; i < m.data.size(); i++)
+			for (int j = 0; j < m.data.size(); j++)
+				s >> m.data[i][j];
 		return s;
 	}
 
