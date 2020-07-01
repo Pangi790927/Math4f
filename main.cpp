@@ -35,6 +35,7 @@ void testVMat() {
 	const	VMatrix<float>			_9(_6);*/
 		 	VMatrix<int>			A(4,2);
 			VMatrix<int>			B(2,3);
+			VMatrix<int>			C(3);
 
 
 	try {
@@ -46,7 +47,10 @@ void testVMat() {
 		std::cout << "A:\n" << A << std::endl;
 		std::cout << "B:\n" << B << std::endl;
 		A *= B;
-		std::cout << "A:\n" << A << std::endl;
+		std::cout << "C:\n" << C << std::endl;
+
+		
+
 
 	}
 	catch (std::exception &e) {
