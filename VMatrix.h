@@ -125,6 +125,13 @@ namespace Math {
 		T norm1() const;
 		T norm2() const;
 		T norm_inf() const;
+
+		static bool lup_det(VMatrix<T> A, T &det, T tol);
+		static bool lup_inv(VMatrix<T> A, VMatrix<T> &inv, T tol);
+		static bool lup_solve(VMatrix<T> A, const VMatrix<T>& b,
+				VMatrix<T>& x, T tol = 0.00001);
+		static bool lup_decompose(VMatrix<T> &A, VMatrix<T> &P,
+				int &piv, T tol = 0.00001);
 	};
 
 	template <typename T>
@@ -324,9 +331,10 @@ namespace Math {
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::do_inv() {
 		ASSERT_SQUARE(data);
-		// TO DO
+		if (lup_inv(*this, *this))
+			EXCEPTION("Matrix is not inversable");
 	}
-	
+
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::do_tr() {
 		*this = (*this).tr();
@@ -369,7 +377,10 @@ namespace Math {
 
 	template <typename T>
 	T VMatrix<T>::det() const {
-		// TO DO
+		T det;
+		if (!lup_det(*this, det))
+			return 0;
+		return det;
 	}
 	
 	template <typename T>
@@ -422,6 +433,115 @@ namespace Math {
 	T VMatrix<T>::norm_inf() const {
 		ASSERT_VECTOR(data);
 		// TO DO
+	}
+
+	/* Will take as imput a matrix A that will be modified to contain L, U,
+	lowe, respective upper matrixes. Will also P, where P is the vector of
+	permutations and tol, the tolerance.
+	We expect that the sizes of A and P are correct. 
+	*/
+
+	bool VMatrix<T>::lup_decompose(VMatrix<T> &A, VMatrix<T> &P,
+			int &piv, T tol)
+	{
+		int N = P.size();
+		piv = 0;
+
+		for (int i = 0; i < N; i++)
+			P[i][0] = i;
+		for (int i = 0; i < N; i++) {
+			T maxA = 0.0;
+			T absA;
+			int imax = i;
+
+			for (int k = i; k < N; k++) {
+				if ((absA = std::abs(A[k][i])) > maxA) {
+					maxA = absA;
+					imax = k;
+				}
+			}
+			if (maxA < tol)
+				return false;
+
+			if (imax != i) {
+				std::swap(P[i][0], P[imax][0]);
+				std::swap(A[i], A[imax]);
+				piv++;
+			}
+			for (int j = i + 1; j < N; j++) {
+				A[j][i] /= A[i][i];
+
+				for (int k = i + 1; k < N; k++)
+					A[j][k] -= A[j][i] * A[i][k];
+			}
+		}
+		return true;
+	}
+
+	bool VMatrix<T>::lup_solve(VMatrix<T> A, const VMatrix<T>& b,
+			VMatrix<T>& x, T tol)
+	{
+		int N = P.size();
+		int piv;
+		VMatrix<T> P(A.size(), 1);
+		if (!lup_decompose(A, P, piv, tol))
+			return false;
+		for (int i = 0; i < N; i++) {
+			x[i] = b[P[i][0]];
+
+			for (int k = 0; k < i; k++)
+				x[i] -= A[i][k] * x[k];
+		}
+
+		for (int i = N - 1; i >= 0; i--) {
+			for (int k = i + 1; k < N; k++)
+				x[i] -= A[i][k] * x[k];
+
+		x[i] = x[i] / A[i][i];
+		return true;
+	}
+
+	bool VMatrix<T>::lup_inv(VMatrix<T> A, VMatrix<T> &inv, T tol) {
+		int N = P.size();
+		int piv;
+		VMatrix<T> P(A.size(), 1);
+		if (!lup_decompose(A, P, piv, tol))
+			return false;
+		for (int j = 0; j < N; j++) {
+			for (int i = 0; i < N; i++) {
+				if (P[i][0] == j) 
+					inv[i][j] = 1.0;
+				else
+					inv[i][j] = 0.0;
+
+				for (int k = 0; k < i; k++)
+					inv[i][j] -= A[i][k] * inv[k][j];
+			}
+
+			for (int i = N - 1; i >= 0; i--) {
+				for (int k = i + 1; k < N; k++)
+					inv[i][j] -= A[i][k] * inv[k][j];
+
+				inv[i][j] = inv[i][j] / A[i][i];
+			}
+		}
+		return true;
+	}
+
+	bool VMatrix<T>::lup_det(VMatrix<T> A, T &det, T tol) {
+		int N = P.size();
+		int piv;
+		VMatrix<T> P(A.size(), 1);
+		if (!lup_decompose(A, P, piv, tol))
+			return false;
+		det = A[0][0];
+
+		for (int i = 1; i < N; i++)
+			det *= A[i][i];
+
+		if ((P[N] - N) % 2 != 0)
+			det *= -1;
+		return true;
 	}
 }
 
