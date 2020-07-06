@@ -3,6 +3,7 @@
 
 #include <cmath> 
 #include <math.h>
+#include <initializer_list>
 
 #include "except.h"
 
@@ -62,6 +63,7 @@ namespace Math {
 		std::vector<std::vector<T>> data;
 
 		VMatrix(int rows = 1, int cols = 1, const T& t = T(0));
+		VMatrix(std::initializer_list<std::vector<T>> list);
 
 		template <typename U>
 		VMatrix(const VMatrix<U>& oth);
@@ -129,13 +131,25 @@ namespace Math {
 		T norm2() const;
 		T norm_inf() const;
 
-		static bool lup_det(VMatrix<T> A, T &det, T tol);
-		static bool lup_inv(VMatrix<T> A, VMatrix<T> &inv, T tol);
+		static bool lup_det(VMatrix<T> A, T &det, T tol = 0.00001);
+		static bool lup_inv(VMatrix<T> A, VMatrix<T> &inv, T tol = 0.00001);
 		static bool lup_solve(VMatrix<T> A, const VMatrix<T>& b,
 				VMatrix<T>& x, T tol = 0.00001);
 		static bool lup_decompose(VMatrix<T> &A, VMatrix<T> &P,
 				int &piv, T tol = 0.00001);
 	};
+
+	template <typename T>
+	VMatrix<T>::VMatrix(std::initializer_list<std::vector<T>> list)
+	: data(list) {
+		if (!list.size())
+			EXCEPTION("Can't init matrix with empty init list");
+		int aux = list.begin()->size();
+		for (auto&& l : list)
+			if (aux != l.size())
+				EXCEPTION("All rows must have the same  length");
+	}
+
 
 	template <typename T>
 	VMatrix<T>::VMatrix(int rows, int cols, const T& t)
@@ -334,8 +348,9 @@ namespace Math {
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::do_inv() {
 		ASSERT_SQUARE(data);
-		if (lup_inv(*this, *this))
+		if (!lup_inv(*this, *this))
 			EXCEPTION("Matrix is not inversable");
+		return *this;
 	}
 
 	template <typename T>
@@ -457,10 +472,11 @@ namespace Math {
 	We expect that the sizes of A and P are correct. 
 	*/
 
+	template <typename T>
 	bool VMatrix<T>::lup_decompose(VMatrix<T> &A, VMatrix<T> &P,
 			int &piv, T tol)
 	{
-		int N = P.size();
+		int N = P.data.size();
 		piv = 0;
 
 		for (int i = 0; i < N; i++)
@@ -494,12 +510,13 @@ namespace Math {
 		return true;
 	}
 
+	template <typename T>
 	bool VMatrix<T>::lup_solve(VMatrix<T> A, const VMatrix<T>& b,
 			VMatrix<T>& x, T tol)
 	{
-		int N = P.size();
+		int N = A.data.size();
 		int piv;
-		VMatrix<T> P(A.size(), 1);
+		VMatrix<T> P(A.data.size(), 1);
 		if (!lup_decompose(A, P, piv, tol))
 			return false;
 		for (int i = 0; i < N; i++) {
@@ -513,14 +530,16 @@ namespace Math {
 			for (int k = i + 1; k < N; k++)
 				x[i] -= A[i][k] * x[k];
 
-		x[i] = x[i] / A[i][i];
+			x[i] = x[i] / A[i][i];
+		}
 		return true;
 	}
 
+	template <typename T>
 	bool VMatrix<T>::lup_inv(VMatrix<T> A, VMatrix<T> &inv, T tol) {
-		int N = P.size();
+		int N = A.data.size();
 		int piv;
-		VMatrix<T> P(A.size(), 1);
+		VMatrix<T> P(A.data.size(), 1);
 		if (!lup_decompose(A, P, piv, tol))
 			return false;
 		for (int j = 0; j < N; j++) {
@@ -544,10 +563,11 @@ namespace Math {
 		return true;
 	}
 
+	template <typename T>
 	bool VMatrix<T>::lup_det(VMatrix<T> A, T &det, T tol) {
-		int N = P.size();
+		int N = A.data.size();
 		int piv;
-		VMatrix<T> P(A.size(), 1);
+		VMatrix<T> P(A.data.size(), 1);
 		if (!lup_decompose(A, P, piv, tol))
 			return false;
 		det = A[0][0];
@@ -555,7 +575,7 @@ namespace Math {
 		for (int i = 1; i < N; i++)
 			det *= A[i][i];
 
-		if ((P[N] - N) % 2 != 0)
+		if ((piv - N) % 2 != 0)
 			det *= -1;
 		return true;
 	}

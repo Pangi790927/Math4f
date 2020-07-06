@@ -37,8 +37,7 @@ void testVMat() {
 			VMatrix<int>			B(2,3);
 			VMatrix<int>			C(3);
 
-
-	try {
+	 {
 	/*	_6 += _6;
 		_6 + _6;
 		std::cout << _6 << std::endl;
@@ -49,13 +48,18 @@ void testVMat() {
 		A *= B;
 		std::cout << "C:\n" << C << std::endl;
 
-		
+		VMatrix<float> a({
+			{1, 4, 6},
+			{8, 2, 9},
+			{1, 4, 0}
+		});
 
-
+		std::cout << a << std::endl;
+		std::cout << a.inv() << std::endl;
 	}
-	catch (std::exception &e) {
-		printf("exception: %s\n", e.what());
-	}
+	// catch (std::exception &e) {
+	// 	printf("exception: %s\n", e.what());
+	// }
 
 	// _6a = _6b;
 	// _6b = _6a;
