@@ -1,11 +1,14 @@
 #ifndef VMATRIX_H
 #define VMATRIX_H
 
+#include <cmath> 
+#include <math.h>
+
 #include "except.h"
 
 /* to do: treat the case where both matrices are 0x0 */
 #define ASSERT_NO_ROWS(m)												\
-	if (!m1.size())														\
+	if (!m.size())														\
 		EXCEPTION("Matrix has no rows");
 
 #define ASSERT_MATCH(m1, m2, op1, op2)									\
@@ -31,7 +34,7 @@
 #define ASSERT_SQUARE(m)	  											\
 	if (m.size() && m.size() != m[0].size())							\
 		EXCEPTION("Doesn't apply on non-square matrix m1[%lu, %lu]",	\
-				m1.size(), m1.size() ? m1[0].size() : 0);
+				m.size(), m.size() ? m[0].size() : 0);
 
 #define ASSERT_COLL_MATCH(m1, m2)										\
 		ASSERT_MATCH(m1, m2, true, m1[0].size() == m2[0].size())
@@ -420,19 +423,32 @@ namespace Math {
 	template <typename T>
 	T VMatrix<T>::norm1() const {
 		ASSERT_VECTOR(data);
-		// TO DO
+		T norm1 = 0;
+		for (int i= 0; i < data.size(); i++) {
+			norm1 += std::abs(data[i]);
+		}
+		return norm1;
 	}
 
 	template <typename T>
 	T VMatrix<T>::norm2() const {
 		ASSERT_VECTOR(data);
-		// TO DO
+		T norm2 = 0;
+		for (int i= 0; i < data.size(); i++) {
+			norm2 += data[i]^2;
+		}
+		return sqrt(norm2);
 	}
 
 	template <typename T>
 	T VMatrix<T>::norm_inf() const {
 		ASSERT_VECTOR(data);
-		// TO DO
+		T max = std::abs(data[0]);
+		for (int i= 1; i < data.size(); i++) {
+			if (std::abs(data[i]) > max)
+				max = data[i];
+		}
+		return max;
 	}
 
 	/* Will take as imput a matrix A that will be modified to contain L, U,
