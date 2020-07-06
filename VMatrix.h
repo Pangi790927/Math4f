@@ -4,12 +4,16 @@
 #include "except.h"
 
 /* to do: treat the case where both matrices are 0x0 */
+#define ASSERT_NO_ROWS(m)												\
+	if (!m1.size())														\
+		EXCEPTION("Matrix has no rows");
+
 #define ASSERT_MATCH(m1, m2, op1, op2)									\
-	if ((m1.size() == 0 || m2.size() == 0) || !(op1) || !(op2))				\
-	{																		\
-		EXCEPTION("matrix size mismatch: m1[%lu, %lu] m2[%lu, %lu]",		\
-				m1.size(), m1.size() ? m1[0].size() : 0,					\
-				m2.size(), m2.size() ? m2[0].size() : 0);					\
+	if ((m1.size() == 0 || m2.size() == 0) || !(op1) || !(op2))			\
+	{																	\
+		EXCEPTION("matrix size mismatch: m1[%lu, %lu] m2[%lu, %lu]",	\
+				m1.size(), m1.size() ? m1[0].size() : 0,				\
+				m2.size(), m2.size() ? m2[0].size() : 0);				\
 	}
 
 #define ASSERT_ADD_MATCH(m1, m2)										\
@@ -17,14 +21,35 @@
 				m1.size() == m2.size(),									\
 				m1[0].size() == m2[0].size())
 
-#define ASSERT_MUL_MATCH(m1, m2) \
+#define ASSERT_MUL_MATCH(m1, m2) 										\
 		ASSERT_MATCH(m1, m2, true, m1[0].size() == m2.size())
 
-#define ASSERT_IN_SIZE(m,i)  \
-	if (i > m.size() - 1)				\
-	{																		\
-		EXCEPTION("index too large: ! m[%u]", i);					\
-	}
+#define ASSERT_IN_SIZE(m, i)  											\
+	if (i > m.size() - 1)												\
+		EXCEPTION("index too large: ! m[%u]", i);
+
+#define ASSERT_SQUARE(m)	  											\
+	if (m.size() && m.size() != m[0].size())							\
+		EXCEPTION("Doesn't apply on non-square matrix m1[%lu, %lu]",	\
+				m1.size(), m1.size() ? m1[0].size() : 0);
+
+#define ASSERT_COLL_MATCH(m1, m2)										\
+		ASSERT_MATCH(m1, m2, true, m1[0].size() == m2[0].size())
+
+#define ASSERT_ROWS_MATCH(m1, m2)										\
+		ASSERT_MATCH(m1, m2, true, m1.size() == m2.size())
+
+#define ASSERT_INSERT_ROW(m, pos)										\
+	if (pos < 0 || pos > m.size())										\
+		EXCEPTION("Can't insert outside of matrix bounds")
+
+#define ASSERT_INSERT_COL(m, pos)										\
+	if (!m.size() || pos < 0 || pos > m[0].size())						\
+		EXCEPTION("Can't insert outside of matrix bounds")
+
+#define ASSERT_VECTOR(m)												\
+	if (!m.size() || m[0].size() != 1)									\
+		EXCEPTION("Not a vector")
 
 namespace Math {
 
@@ -140,10 +165,15 @@ namespace Math {
 	}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator +() const {}
+	VMatrix<T> VMatrix<T>::operator +() const {
+		return (*this);
+	}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator -() const {}
+	VMatrix<T> VMatrix<T>::operator -() const {
+		// not really ok, but good enough
+		return (*this) * -1;
+	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator + (const VMatrix<T>& mat) const {
@@ -152,50 +182,47 @@ namespace Math {
 	}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator - (const VMatrix<T>& mat) const {}
+	VMatrix<T> VMatrix<T>::operator - (const VMatrix<T>& mat) const {
+		auto ret = (*this);
+		return ret -= mat;
+	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator * (const VMatrix<T>& mat) const {
-		ASSERT_MUL_MATCH(data, mat.data);
-		VMatrix<T> ret(data.size(), mat.data[0].size());
-		for (int i = 0; i < ret.data.size(); i++) {
-			for (int j = 0; j < ret.data[0].size(); j++) {
-				T sum = 0;
-				for(int k = 0; k < data[i].size(); k++) {
-					sum += data[i][k] * ret[k][j];
-				}
-				mat_aux[i][j] = sum;
-			}
-		}
-		return (ret);
+		auto ret = *this;
+		return ret *= mat;
 	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator * (const T& val) const {
 		auto ret = (*this);
-		for (int i = 0; i < data.size(); i++)
-			for (int j = 0; j < data[0].size(); j++)
-				ret[i][j] *= t;
-		return ret;
+		return ret *= val;
 	}
 
 	template <typename T>
 	VMatrix<T> VMatrix<T>::operator / (const T& val) const {
 		auto ret = (*this);
-		for (int i = 0; i < data.size(); i++)
-			for (int j = 0; j < data[0].size(); j++)
-				ret[i][j] /= t;
-		return ret;
+		return ret /= val;
 	}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator | (const VMatrix<T>& mat) const {}
+	VMatrix<T> VMatrix<T>::operator | (const VMatrix<T>& mat) const {
+		auto ret = *this;
+		return ret |= mat;
+	}
 
 	template <typename T>
-	VMatrix<T> VMatrix<T>::operator & (const VMatrix<T>& mat) const {}
+	VMatrix<T> VMatrix<T>::operator & (const VMatrix<T>& mat) const {
+		auto ret = *this;
+		return ret &= mat;
+	}
 
 	template <typename T>
-	VMatrix<T> operator * (const T& a, const VMatrix<T>& b) {}
+	VMatrix<T> operator * (const T& a, const VMatrix<T>& b) {
+		/* our element will comute */
+		auto ret = b;
+		return ret *= a;
+	}
 
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::operator += (const VMatrix<T>& mat) {
@@ -249,12 +276,15 @@ namespace Math {
 	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator |= (const VMatrix<T>& mat) {}
-	// Define logic of operation
+	VMatrix<T> &VMatrix<T>::operator |= (const VMatrix<T>& mat) {
+		ASSERT_NO_ROWS(data);
+		insert_cols(data[0].size(), mat.data[0].size(), mat);
+	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::operator &= (const VMatrix<T>& mat) {}
-	// Define logic of operation
+	VMatrix<T> &VMatrix<T>::operator &= (const VMatrix<T>& mat) {
+		insert_rows(data.size(), mat.data.size(), mat);
+	}
 
 	template <typename T>
 	std::vector<T> &VMatrix<T>::operator [] (int i) {
@@ -270,7 +300,10 @@ namespace Math {
 
 	template <typename T>
 	template <typename U>
-	VMatrix<T>::operator VMatrix<U>() {}
+	VMatrix<T>::operator VMatrix<U>() {
+		VMatrix<U> ret = *this;
+		return ret;
+	}
 
 	template <typename T>
 	std::ostream &operator << (std::ostream& s, const VMatrix<T>& m) {
@@ -290,98 +323,76 @@ namespace Math {
 
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::do_inv() {
-		
+		ASSERT_SQUARE(data);
+		// TO DO
 	}
 	
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::do_tr() {
-		VMatrix<T> ret(data.size(), data[0].size());
-		for (int i = 0; i < ret.data.size(); i++) {
-			for (int j = 0; j < ret.data[0].size(); j++) {
-				ret[i][j] = data[j][i];
-			}
-		}
-		*this = ret;
+		*this = (*this).tr();
 		return (*this);
 	}
 	
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::swap_rows(int a, int b) {
-			for (int j = 0; j < data[0].size(); j++) {
-				T aux = data[a][j];
-				data[a][j] = data[b][j];
-				data[b][j] = aux;
-			}
-		}
+		std::swap(data[a], data[b]);
 		return (*this);
 	}
 	
 	template <typename T>
 	VMatrix<T> &VMatrix<T>::swap_cols(int a, int b) {
-		for (int i = 0; i < data.size(); i++) {
-			T aux = data[i][a];
-			data[i][a] = data[i][b];
-			data[i][b] = aux;
-		}
+		for (int i = 0; i < data.size(); i++)
+			std::swap(data[i][a], data[i][b]);
 		return (*this);
 	}
 
 	template <typename T>
-	VMatrix<T> &VMatrix<T>::insert_rows(int pos, int count, const VMatrix<T>& mat) {}
-		VMatrix<T> ret(data.size + mat.data.size(), data[0].size());
-			int mat_n = mat.data.size();
-			for (int i = 0; i < pos; i++) {
-				for (int j = 0; j < ret.data[0].size(); j++) {
-					ret[i][j] = data[i][j];
-				}
-			}
-			for (i = pos; i < mat_n; i++) {
-				for (j = 0; j < ret.data[0].size(); j++) {
-					ret[i][j] = mat.data[i-pos][j];
-				}
-			}
-			for (i = pos + mat_n; i < ret.data.size(); i++) {
-				for (j = 0; j < ret.data[0].size(); j++) {
-					ret[i][j] = data[i- pos - mat_n][j];
-				}
-			}
-			*this = ret;
-			return (*this);
-
-	template <typename T>
-	VMatrix<T> &VMatrix<T>::insert_cols(int pos, int count, const VMatrix<T>& mat) {
-		VMatrix<T> ret(data.size, data[0].size() + mat.data[0].size());
-			int mat_m = mat.data[0].size();
-			for (int i = 0; i < ret.data.size(); i++) {
-				for (int j = 0; j < pos; j++) {
-					ret[i][j] = data[i][j];
-				}
-			}
-			for (i = 0; i < ret.data.size(); i++) {
-				for (j = pos; j < mat_m; j++) {
-					ret[i][j] = mat.data[i][j-pos];
-				}
-			}
-			for (i = 0; i < ret.data.size(); i++) {
-				for (j = pos + mat_m; j < ret.data[0].size(); j++) {
-					ret[i][j] = data[i][j-pos-mat_m];
-				}
-			}
-			*this = ret;
-			return (*this);
+	VMatrix<T> &VMatrix<T>::insert_rows(int pos, int count, const VMatrix<T>& mat) {
+		ASSERT_COLL_MATCH(data, mat.data);
+		ASSERT_INSERT_ROW(data, pos);
+		ASSERT_INSERT_ROW(mat.data, count - 1);
+		data.insert(data.begin() + pos, mat.data.begin(),
+				mat.data.begin() + count);
+		return (*this);
 	}
 
 	template <typename T>
-	T VMatrix<T>::det() const {}
+	VMatrix<T> &VMatrix<T>::insert_cols(int pos, int count, const VMatrix<T>& mat) {
+		ASSERT_ROWS_MATCH(data, mat.data);
+		ASSERT_INSERT_COL(data, pos);
+		ASSERT_INSERT_COL(mat.data, count - 1);
+		for (int i = 0; i < data.size(); i++)
+			data[i].insert(data[i].begin() + pos, mat.data[i].begin(),
+					mat.data[i].begin() + count);
+		return (*this);
+	}
+
+	template <typename T>
+	T VMatrix<T>::det() const {
+		// TO DO
+	}
 	
 	template <typename T>
-	VMatrix<T> VMatrix<T>::inv() const {}
+	VMatrix<T> VMatrix<T>::inv() const {
+		auto ret = *this;
+		return ret.do_inv();
+	}
 	
 	template <typename T>
-	VMatrix<T> VMatrix<T>::tr() const {}
+	VMatrix<T> VMatrix<T>::tr() const {
+		VMatrix<T> ret(data[0].size(), data.size());
+		for (int i = 0; i < ret.data.size(); i++) {
+			for (int j = 0; j < ret.data[0].size(); j++) {
+				ret[i][j] = data[j][i];
+			}
+		}
+		return ret;
+	}
 	
 	template <typename T>
-	VMatrix<T> VMatrix<T>::partition(int x, int y, int cx, int cy) const {}
+	VMatrix<T> VMatrix<T>::partition(int x, int y, int cx, int cy) const {
+		// TO DO
+	}
 
 	template <typename T>
 	std::tuple<int, int> VMatrix<T>::size() const {
@@ -390,16 +401,28 @@ namespace Math {
 
 	/* for vectors */
 	template <typename T>
-	T VMatrix<T>::dot() const {}
+	T VMatrix<T>::dot() const {
+		ASSERT_VECTOR(data);
+		// TO DO
+	}
 
 	template <typename T>
-	T VMatrix<T>::norm1() const {}
+	T VMatrix<T>::norm1() const {
+		ASSERT_VECTOR(data);
+		// TO DO
+	}
 
 	template <typename T>
-	T VMatrix<T>::norm2() const {}
+	T VMatrix<T>::norm2() const {
+		ASSERT_VECTOR(data);
+		// TO DO
+	}
 
 	template <typename T>
-	T VMatrix<T>::norm_inf() const {}
+	T VMatrix<T>::norm_inf() const {
+		ASSERT_VECTOR(data);
+		// TO DO
+	}
 }
 
 #endif

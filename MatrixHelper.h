@@ -218,9 +218,9 @@ namespace Math {
 		);
 	}
 
-	template <typename Type, typename A>
+	template <typename Type, typename A = float>
 	Mat4<Type> scale4 (const Vec3<A>& vec) {
-		return scale4(vec.x, vec.y, vec.z);
+		return scale4<Type>(vec.x, vec.y, vec.z);
 	}
 
 	template <int resCol, int resRow, typename Type, int col, int row>
