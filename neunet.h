@@ -38,7 +38,8 @@ struct Neunet {
 		for(int i = 1; i < layers.size(); i++) {
 			layers[i].a = layers[i].w * layers[i-1].h + layers[i].b;
 			layers[i].h = layers[i].apply_f(layers[i].a);  
-		}
+		}	
+		return layers[layers.size()-1].h;
 	}
 	void add_layer(Layer::FnType f, int w_n, int w_m) {
 		Layer layer;

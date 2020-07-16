@@ -25,8 +25,9 @@ int main(int argc, char const *argv[])
 	Math::VMatrix x = Math::VMatrix<double> (3);
 	auto y = nn.feedforward(x);
 
-	std::cout << "x=\n" << x <<std::endl;
-	std::cout << "y=\n" << y <<std::endl;
+	std::cout << "x=\n" << x << std::endl;
+	std::cout << "y=\n" << y << std::endl;
+
 	// testVMat();
 	// testBasic();
 	// testBasicOld();
