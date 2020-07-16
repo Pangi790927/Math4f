@@ -442,7 +442,7 @@ namespace Math {
 
 	template <typename T>
 	std::vector<int> VMatrix<T>::size() const {
-		return std::vector<int> ({data.size(), data.size() ? data.size() : 0});
+		return std::vector<int> ({int(data.size()), int(data.size() ? data[0].size() : 0)});
 	}
 
 	/* for vectors */

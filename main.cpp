@@ -9,13 +9,24 @@ void testVMat();
 void testBasic();
 int testBasicOld();
 
+double eye(double x) {
+	return x;
+}
+
 int main(int argc, char const *argv[])
 {
 	using namespace Math;
 	using namespace std;
 
 	Neunet nn;
+	nn.add_layer(eye, 3,3);
+	nn.add_layer(eye, 3,3);
 
+	Math::VMatrix x = Math::VMatrix<double> (3);
+	auto y = nn.feedforward(x);
+
+	std::cout << "x=\n" << x <<std::endl;
+	std::cout << "y=\n" << y <<std::endl;
 	// testVMat();
 	// testBasic();
 	// testBasicOld();
