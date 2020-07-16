@@ -99,6 +99,9 @@ namespace Math {
 		VMatrix &operator |= (const VMatrix& mat);
 		VMatrix &operator &= (const VMatrix& mat);
 
+		T &operator () (int i);
+		const T &operator () (int i) const;
+
 		std::vector<T> &operator [] (int i);
 		const std::vector<T> &operator [] (int i) const;
 
@@ -123,7 +126,7 @@ namespace Math {
 		VMatrix tr() const;
 		VMatrix partition(int x, int y, int cx, int cy) const;
 
-		std::tuple<int, int> size() const;
+		std::vector<int> size() const;
 		/* for vectors */
 
 		T dot() const;
@@ -311,6 +314,20 @@ namespace Math {
 	}
 
 	template <typename T>
+	T &VMatrix<T>::operator () (int i) {
+		ASSERT_IN_SIZE(data, i);
+		ASSERT_VECTOR(data);
+		return data[i][0];
+	}
+
+	template <typename T>
+	const T &VMatrix<T>::operator () (int i) const {
+		ASSERT_IN_SIZE(data, i);
+		ASSERT_VECTOR(data);
+		return data[i][0];
+	}
+
+	template <typename T>
 	std::vector<T> &VMatrix<T>::operator [] (int i) {
 		ASSERT_IN_SIZE(data, i);
 		return data[i];
@@ -424,8 +441,8 @@ namespace Math {
 	}
 
 	template <typename T>
-	std::tuple<int, int> VMatrix<T>::size() const {
-		return std::tuple{data.size(), data.size() ? data.size() : 0};
+	std::vector<int> VMatrix<T>::size() const {
+		return std::vector<int> ({data.size(), data.size() ? data.size() : 0});
 	}
 
 	/* for vectors */
