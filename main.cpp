@@ -1,5 +1,6 @@
 #include <iostream>
 #include "MathLib.h"
+#include "neunet.h"
 
 //Test
 
@@ -13,7 +14,9 @@ int main(int argc, char const *argv[])
 	using namespace Math;
 	using namespace std;
 
-	testVMat();
+	Neunet nn;
+
+	// testVMat();
 	// testBasic();
 	// testBasicOld();
 }
