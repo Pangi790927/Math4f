@@ -25,19 +25,21 @@ int main(int argc, char const *argv[])
 	Math::VMatrix x = Math::VMatrix<double> (3);
 	auto y = nn.feedforward(x);
 
-	std::cout << "x=\n" << x << std::endl;
-	std::cout << "y=\n" << y << std::endl;
+	//std::cout << "x=\n" << x << std::endl;
+	//std::cout << "y=\n" << y << std::endl;
 
-	// testVMat();
+	testVMat();
 	// testBasic();
 	// testBasicOld();
 }
 
+
+
 void testVMat() {
 	using namespace Math;
 
-
-	/*const	VMatrix<float>			_0;
+	/*
+	const	VMatrix<float>			_0;
 	const	VMatrix<int>			_1;
 	const	VMatrix<VMatrix<float>>	_2;
 	const	VMatrix<float>			_3(_0);
@@ -47,72 +49,30 @@ void testVMat() {
 			VMatrix<int>			_6a(10, 10);
 			VMatrix<float>			_6b(10, 10);
 	const	VMatrix<float>			_7(10, 10, 3);
-	const	VMatrix<float>			_9(_6);*/
-		 	VMatrix<int>			A(4,2);
-			VMatrix<int>			B(2,3);
-			VMatrix<int>			C(3);
+	const	VMatrix<float>			_9(_6);
+	*/
 
-	 {
-	/*	_6 += _6;
-		_6 + _6;
-		std::cout << _6 << std::endl;
-		_5 + _6;
-		_5 + _6;*/
-		std::cout << "A:\n" << A << std::endl;
-		std::cout << "B:\n" << B << std::endl;
-		A *= B;
-		std::cout << "C:\n" << C << std::endl;
-
-		VMatrix<float> a({
-			{1, 4, 6},
-			{8, 2, 9},
-			{1, 4, 0}
+	VMatrix<float> A({
+			{1, 4, 6}
+	
 		});
 
-		std::cout << a << std::endl;
-		std::cout << a.inv() << std::endl;
-	}
-	// catch (std::exception &e) {
-	// 	printf("exception: %s\n", e.what());
-	// }
+	VMatrix<float> B({
+			{8, 8, 3}
+		
+		});
 
-	// _6a = _6b;
-	// _6b = _6a;
+	
+	VMatrix<float> C;
 
-	// int vec[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-	// std::vector<std::vector<int>> mat(10, std::vector<int>(10));
+	//std::cout << "C: " << std::endl;
 
-	// const	VMat<float>			_8b(10, vec);
+	//C = B * A;
 
-	// 		auto _10 = -_6;
-	// 		auto _11 = +_6;
-	// const	auto _12 = _6 - _6;
-	// const	auto _13 = _6 + _6;
-	// 		auto _14 = _5 + vec;
-	// 		auto _15 = _6 + mat;
-	// const	auto _16 = vec + _5;
-	// const	auto _17 = mat + _6;
-	// const	auto _18 = _5 - vec;
-	// const	auto _19 = _6 - mat;
-	// const	auto _20 = vec - _5;
-	// const	auto _21 = mat - _6;
-	// const	auto _22 = _6 * mat;
-	// const	auto _23 = mat * _6;
-	// 		auto _24 = _6 / 3.;
-	// const	auto _25 = (mat | _6) & (_6 | mat);
-	// 		auto _26 = (mat & _6) | (_6 & mat);
 
-	// _24 +=  _6;
-	// _24 -=  _6;
-	// _24 *=  _6;
-	// _24 /=  6;
-	// _24 |=  _6;
-	// _24 &=  (_6 | _6);
-	// _24 *= 3.;
-	// _10 *= vec;
-	// _11 *= _8;
+	std::cout << B.tr().norm_inf() << std::endl;
 
-	// 		VMat<int> _27(1, 1);
+	
 
 	// if (sizeof(_27) < 2)
 	// 	std::cin >> _27;

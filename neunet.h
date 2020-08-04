@@ -31,7 +31,18 @@ struct Neunet {
 
 	std::vector<Layer> layers;
 
-	Math::VMatrix<double> backpropagate(const Math::VMatrix<double>& x) {}
+	Math::VMatrix<double> backpropagate(const Math::VMatrix<double>& x) {
+
+			//Aici vom face backpropagation.
+			//Ziua a 7-a, scriu la Backpropagation
+			//Ziua a 16-a, Andrei inca crede ca scriu cu advearat cod 
+			//Ziua 100,, ii dau push pe Git, ca sa ramana in istorie
+		
+
+
+
+
+	}
 	
 	Math::VMatrix<double> feedforward(const Math::VMatrix<double>& x) {
 		layers[0].h = x;

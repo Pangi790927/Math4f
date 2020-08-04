@@ -277,7 +277,7 @@ namespace Math {
 			for (int j = 0; j < ret.data[0].size(); j++) {
 				T sum = 0;
 				for(int k = 0; k < data[i].size(); k++) {
-					sum += data[i][k] * ret[k][j];
+					sum += data[i][k] * mat[k][j];
 				}
 				ret[i][j] = sum;
 			}
@@ -457,7 +457,7 @@ namespace Math {
 		ASSERT_VECTOR(data);
 		T norm1 = 0;
 		for (int i= 0; i < data.size(); i++) {
-			norm1 += std::abs(data[i]);
+			norm1 += std::abs(data[i][0]);
 		}
 		return norm1;
 	}
@@ -467,7 +467,7 @@ namespace Math {
 		ASSERT_VECTOR(data);
 		T norm2 = 0;
 		for (int i= 0; i < data.size(); i++) {
-			norm2 += data[i]^2;
+			norm2 += data[i][0] * data[i][0];
 		}
 		return sqrt(norm2);
 	}
@@ -475,10 +475,10 @@ namespace Math {
 	template <typename T>
 	T VMatrix<T>::norm_inf() const {
 		ASSERT_VECTOR(data);
-		T max = std::abs(data[0]);
+		T max = std::abs(data[0][0]);
 		for (int i= 1; i < data.size(); i++) {
-			if (std::abs(data[i]) > max)
-				max = data[i];
+			if (std::abs(data[i][0]) > max)
+				max = data[i][0];
 		}
 		return max;
 	}
@@ -592,7 +592,7 @@ namespace Math {
 		for (int i = 1; i < N; i++)
 			det *= A[i][i];
 
-		if ((piv - N) % 2 != 0)
+		if ((piv) % 2 != 0)
 			det *= -1;
 		return true;
 	}
