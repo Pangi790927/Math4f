@@ -704,6 +704,18 @@ namespace Math {
 			return ((*this) = (*this) / scalar);
 		}
 
+		template <int rowsB, int colsB, typename TypeB>
+		bool operator == (const Matrix<rowsB, colsB, TypeB>& mat) const {
+			if (row_count != rowsB || column_count != colsB)
+				return false;
+			for (int i = 0; i < rowsB; i++)
+				for (int j = 0; j < colsB; j++)
+					if ((*this)[i][j] != mat[i][j])
+						return false;
+			return true;
+		}
+
+
 		Type* operator [] (int index) {
 			return MatCont::matrix[index];
 		}
